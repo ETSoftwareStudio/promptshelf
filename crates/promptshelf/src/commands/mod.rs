@@ -2,9 +2,11 @@
 
 mod fill;
 mod find;
+mod inbox;
 mod save;
 mod setup;
 mod sync;
+mod team;
 
 use std::io::IsTerminal;
 
@@ -55,6 +57,13 @@ pub fn dispatch(cli: Cli) -> u8 {
         Some(Command::Pins) => sync::pins(&ctx),
         Some(Command::Sync(a)) => sync::sync(&ctx, a),
         Some(Command::Allow(a)) => sync::allow(&ctx, a),
+        Some(Command::Edit(a)) => team::edit(&ctx, a),
+        Some(Command::Propose(a)) => team::propose(&ctx, a),
+        Some(Command::Proposals { check }) => team::list(&ctx, check),
+        Some(Command::Withdraw(a)) => team::withdraw(&ctx, a),
+        Some(Command::Inbox(a)) => inbox::inbox(&ctx, a),
+        Some(Command::KeepPrevious(a)) => inbox::keep_previous(&ctx, a),
+        Some(Command::Copy(a)) => inbox::copy(&ctx, a),
         Some(Command::MergePins { base, ours, theirs }) => sync::merge_pins(&base, &ours, &theirs),
     };
     match result {
