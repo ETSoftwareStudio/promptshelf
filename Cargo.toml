@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/promptshelf-core", "crates/promptshelf"]
+# The desktop app needs webkit and GTK on Linux; it builds on its own.
+exclude = ["app/src-tauri"]
 
 [workspace.package]
 version = "0.0.0"
