@@ -178,6 +178,9 @@ pub async fn send_prompt(
         let text = text.clone();
         blocking(move || Ok(resolve::set_clipboard(&text))).await?
     };
+    if copy.is_ok() {
+        crate::tips::Tips::update(|t, now| t.filled_prompt(now));
+    }
     let mut result = SendResult {
         text,
         copied: copy.is_ok(),

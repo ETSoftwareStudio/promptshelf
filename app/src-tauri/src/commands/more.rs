@@ -59,6 +59,9 @@ pub async fn new_prompt(
     )
     .map_err(msg);
     state.invalidate();
+    if result.is_ok() {
+        crate::tips::Tips::update(|t, now| t.created_prompt(now));
+    }
     result
 }
 
