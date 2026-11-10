@@ -1,11 +1,10 @@
 //! What the app's write commands do: pins, edits, new prompts and sync. The
 //! app acts for a person, so it may write.
 
-use promptshelf_core::config::{LibraryConfig, Writes};
 use promptshelf_core::pins::Pins;
 use promptshelf_core::sync::{self as core_sync, Report};
 use promptshelf_core::write::{self, NewPrompt};
-use promptshelf_core::{Config, Error, Kind, Result, Shelf, edit};
+use promptshelf_core::{Error, Kind, Result, Shelf, edit};
 
 fn personal_root(shelf: &Shelf) -> Result<std::path::PathBuf> {
     shelf
@@ -91,44 +90,6 @@ pub fn sync(shelf: &Shelf, library: Option<&str>, merge_driver: &str) -> Result<
         return Err(Error::UnknownLibrary(name.to_string()));
     }
     Ok(reports)
-}
-
-/// The program git runs as the pin merge driver. The desktop app is not
-/// `shelf`, so it names `shelf` and expects it on the PATH, as the CLI does.
-pub fn merge_driver() -> String {
-    "shelf".into()
-}
-
-/// First run: creates `config.toml` with a Personal library, like
-/// `shelf init`. Existing config and files are kept.
-pub fn init(path: &str) -> Result<String> {
-    let mut config = match Config::load() {
-        Ok(c) => c,
-        Err(Error::NoConfig) => Config::default(),
-        Err(e) => return Err(e),
-    };
-    if config.personal().is_none() {
-        config.libraries.push(LibraryConfig {
-            name: "personal".into(),
-            path: path.to_string(),
-            remote: None,
-            writes: Writes::Commit,
-            personal: true,
-            trusted: None,
-            forge: None,
-            api: None,
-        });
-        config.save()?;
-    }
-    let personal = config.personal().expect("personal library exists");
-    let root = personal.root();
-    write::init_library(&root)?;
-    if !promptshelf_core::git::is_repo(&root)
-        && promptshelf_core::git::run(&root, &["init", "-q", "-b", "main"]).is_ok()
-    {
-        core_sync::setup_merge_driver(&root, &merge_driver())?;
-    }
-    Ok(root.display().to_string())
 }
 
 #[cfg(test)]

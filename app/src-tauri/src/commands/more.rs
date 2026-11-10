@@ -2,13 +2,15 @@
 //! and windows.
 
 use promptshelf_core::sync::Report;
-use promptshelf_core::{Config, Kind};
+use promptshelf_core::{Config, Kind, tools};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 
 use super::{AppState, CmdResult, blocking, msg};
+use crate::manage;
 use crate::paste;
 use crate::settings::Settings;
+use crate::views::{LastSync, SyncView};
 use crate::windows;
 use crate::writes;
 
@@ -60,24 +62,58 @@ pub async fn new_prompt(
     result
 }
 
+/// Keeps the outcome of each sync for the sidebar and Settings, and adds
+/// plain words to its error.
+pub(crate) fn record_syncs(state: &AppState, reports: Vec<Report>) -> Vec<SyncView> {
+    let at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let mut last = state.last_sync.lock().expect("sync lock");
+    reports
+        .into_iter()
+        .map(|report| {
+            let hint = report.error.as_deref().and_then(tools::explain);
+            last.insert(
+                report.library.clone(),
+                LastSync {
+                    at,
+                    error: report.error.clone(),
+                    hint,
+                    conflicts: report.conflicts.clone(),
+                },
+            );
+            SyncView { report, hint }
+        })
+        .collect()
+}
+
 #[tauri::command]
 pub async fn sync_libraries(
     state: State<'_, AppState>,
     library: Option<String>,
-) -> CmdResult<Vec<Report>> {
+) -> CmdResult<Vec<SyncView>> {
     let shelf = state.shelf().map_err(msg)?;
     let reports = blocking(move || {
-        writes::sync(&shelf, library.as_deref(), &writes::merge_driver()).map_err(msg)
+        writes::sync(&shelf, library.as_deref(), &manage::merge_driver()).map_err(msg)
     })
     .await;
     state.invalidate();
-    reports
+    Ok(record_syncs(&state, reports?))
 }
 
-/// First run: creates a Personal library, like `shelf init`.
+/// First run: makes a folder the Personal library, like `shelf init`. With
+/// `url`, clones that repo into the folder first.
 #[tauri::command]
-pub async fn init_personal(state: State<'_, AppState>) -> CmdResult<String> {
-    let result = blocking(|| writes::init("~/Prompts/personal").map_err(msg)).await;
+pub async fn init_personal(
+    state: State<'_, AppState>,
+    path: Option<String>,
+    url: Option<String>,
+) -> CmdResult<String> {
+    let result = blocking(move || {
+        manage::init(path.as_deref().unwrap_or_default(), url.as_deref()).map_err(msg)
+    })
+    .await;
     state.invalidate();
     result
 }
