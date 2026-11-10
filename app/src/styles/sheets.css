@@ -97,3 +97,137 @@
   color: var(--ink2);
   margin: 12px 0 5px 2px;
 }
+
+/* A labelled field in a sheet or a form. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--ink2);
+  flex: 1;
+  min-width: 0;
+}
+.field-row {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.fine {
+  font-size: 11.5px;
+  color: var(--ink2);
+  line-height: 1.45;
+  margin: 8px 0 0;
+}
+.btn.danger {
+  color: var(--danger);
+}
+.btn.primary.danger {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+.linkish {
+  color: var(--link);
+  font-size: 11.5px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.banner.err {
+  background: var(--danger-bg);
+  color: var(--ink);
+}
+.banner.err .i {
+  color: var(--danger);
+}
+.banner .grow {
+  flex: 1;
+  min-width: 0;
+}
+.banner p {
+  margin: 0;
+}
+.banner p + p {
+  margin-top: 4px;
+}
+.banner .acts {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+  flex-wrap: wrap;
+}
+
+/* A small menu under a button. */
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 190px;
+  padding: 4px;
+  border-radius: 9px;
+  background: var(--sheet);
+  box-shadow:
+    0 0 0 0.5px var(--edge),
+    0 12px 32px -10px var(--shadow);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+}
+.menu button {
+  text-align: left;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+.menu button:hover,
+.menu button:focus-visible {
+  background: var(--accent);
+  color: var(--on-accent);
+  outline: none;
+}
+.menu button.danger {
+  color: var(--danger);
+}
+.menu button.danger:hover,
+.menu button.danger:focus-visible {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 4px 6px;
+}
+
+/* A state chip: "Not sent", "#42 Waiting for review". */
+.chip {
+  display: inline-block;
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 0 6px;
+  border-radius: 8px;
+  line-height: 16px;
+  background: var(--seg);
+  color: var(--ink2);
+}
+.chip.warn {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.chip.ok {
+  background: var(--g-bg);
+  color: var(--g-ink);
+}
+.chip.blue {
+  background: var(--y-bg);
+  color: var(--y-ink);
+}
+.banner.info {
+  background: var(--group);
+  color: var(--ink2);
+  box-shadow: inset 0 0 0 0.5px var(--edge);
+}
+.banner.info .i {
+  color: var(--link);
+}

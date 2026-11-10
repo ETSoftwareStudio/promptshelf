@@ -36,3 +36,25 @@ export function libraryLabel(name: string): string {
   const words = name.replace(/-/g, " ");
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+/** A proposal's state for a chip and a line of text. */
+export function proposalLabel(p: { status: string; number?: number | null; unsent: boolean }): {
+  chip: string;
+  tone?: "warn" | "ok" | "blue";
+  text: string;
+} {
+  const n = p.number ? `#${p.number}` : "Sent";
+  const more = p.unsent ? " · new edits not sent" : "";
+  switch (p.status) {
+    case "not-sent":
+      return { chip: "Not sent", text: "Only on this computer" };
+    case "changes-requested":
+      return { chip: n, tone: "warn", text: `Changes requested${more}` };
+    case "not-merged":
+      return { chip: n, tone: "warn", text: "Closed without a merge" };
+    case "gone":
+      return { chip: "Gone", tone: "warn", text: "Closed or merged with edits: check on the host" };
+    default:
+      return { chip: n, tone: "blue", text: `Waiting for review${more}` };
+  }
+}
