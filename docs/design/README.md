@@ -73,6 +73,7 @@ OKLCH is the source of truth. Neutrals are tinted toward hue 265.
 | conversation (rose) | oklch(52% 0.17 355), bg oklch(94% 0.04 355), ink oklch(36% 0.12 355) | oklch(76% 0.13 355), bg oklch(66% 0.14 355 / 0.24), ink oklch(92% 0.05 355) | A value from the conversation |
 | repo | oklch(48% 0.11 158), bg oklch(93% 0.05 158) | oklch(76% 0.12 158), bg oklch(68% 0.12 158 / 0.22) | A value from the repo or files |
 | pin | oklch(56% 0.17 35) | oklch(74% 0.14 45) | Pin marks |
+| typed (blue) | quieter than the accent, hue 255 | (same family) | A value you typed, a default or a last-used value. Added on 2026-11-10; the palette stays open to change. |
 | warning | oklch(55% 0.14 65) | oklch(80% 0.13 75) | Needs attention |
 
 - **Unresolved value** — A dashed outline in ink2, no fill.
