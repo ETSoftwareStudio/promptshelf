@@ -14,16 +14,15 @@ fn runs_as_the_cli_only_under_the_name_shelf() {
 
 #[test]
 fn a_translocated_app_can_not_be_the_command() {
-    let note = command_note(Path::new(
+    let translocated = Path::new(
         "/private/var/folders/x/AppTranslocation/1/d/PromptShelf.app/Contents/MacOS/PromptShelf",
-    ));
-    assert!(note.is_some_and(|n| n.contains("Applications")));
-    if !cfg!(windows) {
-        assert_eq!(
-            command_note(Path::new(
-                "/Applications/PromptShelf.app/Contents/MacOS/PromptShelf"
-            )),
-            None
-        );
+    );
+    let installed = Path::new("/Applications/PromptShelf.app/Contents/MacOS/PromptShelf");
+    if cfg!(windows) {
+        // Windows has no shelf link: the note points to cargo and npm.
+        assert!(command_note(installed).is_some_and(|n| n.contains("cargo or npm")));
+    } else {
+        assert!(command_note(translocated).is_some_and(|n| n.contains("Applications")));
+        assert_eq!(command_note(installed), None);
     }
 }
