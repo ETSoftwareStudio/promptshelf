@@ -1,0 +1,100 @@
+/* Sheets over a window. */
+.dim {
+  position: fixed;
+  inset: 0;
+  background: var(--dim);
+  z-index: 10;
+}
+.sheet {
+  position: fixed;
+  top: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 80px);
+  overflow: auto;
+  padding: 14px 16px;
+  color: var(--ink);
+  background: var(--sheet);
+  border-radius: 13px;
+  box-shadow:
+    0 0 0 0.5px var(--edge),
+    0 22px 48px -12px var(--shadow);
+  z-index: 11;
+}
+.sheet h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.sheet .sub {
+  font-size: 11.5px;
+  color: var(--ink2);
+  margin-top: 1px;
+}
+.sfoot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 12px;
+}
+.sfoot .grow {
+  margin-right: auto;
+}
+
+.out {
+  margin: 10px 0 0 24px;
+  padding: 8px 10px;
+  border-radius: 11px 11px 3px 11px;
+  background: var(--bubble);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 260px;
+  overflow: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.banner {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.banner .i {
+  color: var(--warn);
+  margin-top: 1px;
+}
+
+.chk {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+}
+.chk input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.grp {
+  background: var(--group);
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 0.5px var(--edge);
+}
+.gh {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin: 12px 0 5px 2px;
+}
+
