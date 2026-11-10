@@ -13,11 +13,11 @@ unused-allowed-license = "allow"
 # crates.io, so the app itself stays MIT. Each exception names one crate,
 # so a new MPL dependency still fails the check.
 exceptions = [
-  { crate = "cssparser", allow = ["MPL-2.0"] },        # tauri-utils → dom_query
+  { crate = "cssparser", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
   { crate = "cssparser-macros", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
-  { crate = "dtoa-short", allow = ["MPL-2.0"] },       # tauri-utils → dom_query
-  { crate = "selectors", allow = ["MPL-2.0"] },        # tauri-utils → dom_query
-  { crate = "option-ext", allow = ["MPL-2.0"] },       # tauri → dirs
+  { crate = "dtoa-short", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "selectors", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "option-ext", allow = ["MPL-2.0"] }, # tauri → dirs
   # Build-time only, on Linux (system-deps). A permissive Apache variant.
   { crate = "target-lexicon", allow = ["Apache-2.0 WITH LLVM-exception"] },
 ]
