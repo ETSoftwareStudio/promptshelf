@@ -1,0 +1,23 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"fill\", \"explain-like-a-colleague\", \"--var\", \"topic=the sync loop\"])"
+---
+{
+  "complete": true,
+  "id": "examples/explain-like-a-colleague",
+  "missing": [],
+  "schema": 1,
+  "text": "Explain the sync loop to a developer new to this codebase. Start with what it does, then how it works.\nUse one short example. I write Rust and TypeScript, and I prefer short answers with code.\n",
+  "values": [
+    {
+      "name": "topic",
+      "source": "given",
+      "value": "the sync loop"
+    },
+    {
+      "name": "audience",
+      "source": "default",
+      "value": "a developer new to this codebase"
+    }
+  ]
+}

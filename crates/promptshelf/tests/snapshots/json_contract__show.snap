@@ -1,0 +1,54 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"show\", \"strict-pr-review\"])"
+---
+{
+  "prompt": {
+    "blanks": [
+      {
+        "from": "conversation",
+        "hint": "what the user is worried about",
+        "name": "focus"
+      },
+      {
+        "choices": [
+          "Blockers only",
+          "Everything"
+        ],
+        "default": "Blockers only",
+        "name": "findings"
+      },
+      {
+        "from": "git diff --staged",
+        "name": "diff"
+      }
+    ],
+    "body": "Review this diff like a strict senior reviewer. Focus on {{focus}}.\nReport {{findings}} and skip style nits.\n\n{{> house-rules}}\n\nThe diff:\n{{diff}}\n",
+    "id": "examples/strict-pr-review",
+    "kind": "template",
+    "library": "examples",
+    "path": "[path]",
+    "tags": [
+      "review",
+      "code"
+    ],
+    "title": "Strict PR review",
+    "vars": {
+      "diff": {
+        "from": "git diff --staged"
+      },
+      "findings": {
+        "choices": [
+          "Blockers only",
+          "Everything"
+        ],
+        "default": "Blockers only"
+      },
+      "focus": {
+        "from": "conversation",
+        "hint": "what the user is worried about"
+      }
+    }
+  },
+  "schema": 1
+}
