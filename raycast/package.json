@@ -35,6 +35,13 @@
           "required": true
         }
       ]
+    },
+    {
+      "name": "save-selection",
+      "title": "Save Selection as Prompt",
+      "subtitle": "PromptShelf",
+      "description": "Save the selected text as a draft prompt in your Inbox.",
+      "mode": "view"
     }
   ],
   "preferences": [
