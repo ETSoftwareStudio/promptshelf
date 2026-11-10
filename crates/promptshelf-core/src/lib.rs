@@ -3,6 +3,7 @@
 //! This crate owns the prompt files, templates, libraries and sync. Every
 //! surface uses it: the `shelf` CLI, the terminal app and the desktop app.
 
+pub mod agents;
 pub mod config;
 pub mod edit;
 pub mod error;

@@ -1,9 +1,7 @@
 //! Setup: init, libraries and the Claude Code skill.
 
-use std::path::PathBuf;
-
 use promptshelf_core::config::{Writes, expand_tilde};
-use promptshelf_core::{Config, Error, Result, fsutil, setup};
+use promptshelf_core::{Config, Error, Result, setup};
 use serde_json::json;
 
 use super::{Ctx, load};
@@ -132,12 +130,7 @@ pub(super) fn skill(ctx: &Ctx, cmd: SkillCommand) -> Result<u8> {
                 promptshelf_core::config::home_dir()
                     .ok_or_else(|| Error::Invalid("no home folder".into()))?
             };
-            let path: PathBuf = base
-                .join(".claude")
-                .join("skills")
-                .join("promptshelf")
-                .join("SKILL.md");
-            fsutil::write_atomic(&path, SKILL_MD.as_bytes())?;
+            let path = promptshelf_core::agents::install_skill(&base)?;
             if ctx.json {
                 output::json(json!({ "path": path.display().to_string() }));
             } else {
