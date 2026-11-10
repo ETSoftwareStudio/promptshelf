@@ -194,15 +194,10 @@
     }
   }
 
-  async function initPersonal() {
-    try {
-      const path = await api.initPersonal();
-      toast.show(`Created your Personal library in ${path}`);
-      await loadOverview();
-      await loadList(false);
-    } catch (e) {
-      toast.show(errorText(e), true);
-    }
+  async function started(path: string) {
+    toast.show(`Your Personal library is in ${path}.`, false, 4000);
+    await loadOverview();
+    await loadList(false);
   }
 
   // Search as you type.
@@ -259,7 +254,7 @@
     {#if loadError}<div class="empty"><h4>PromptShelf could not start</h4><p>{loadError}</p></div>{/if}
   </div>
 {:else if !overview.hasConfig}
-  <FirstRun oncreate={() => void initPersonal()} />
+  <FirstRun ondone={(path) => void started(path)} />
 {:else}
   <main class="lib">
     <Sidebar
