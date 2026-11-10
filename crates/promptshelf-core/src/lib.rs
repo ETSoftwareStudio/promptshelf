@@ -14,6 +14,7 @@ pub mod pins;
 pub mod prompt;
 pub mod proposals;
 pub mod resolve;
+pub mod setup;
 pub mod shelf;
 pub mod state;
 pub mod sync;

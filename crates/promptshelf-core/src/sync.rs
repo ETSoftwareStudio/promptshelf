@@ -76,7 +76,7 @@ fn run(lib: &Library, personal: bool, opts: &Options, report: &mut Report) -> Re
     if opts.commit && !team {
         report.committed = checkpoint(root)?;
     }
-    if git::upstream(root).is_none() {
+    if git::upstream(root).is_none() && !track_remote_branch(root)? {
         let has_remote = !git::run(root, &["remote"])?.trim().is_empty();
         if has_remote && opts.push && !team && git::branch(root).is_some() {
             git::run(root, &["push", "-q", "-u", "origin", "HEAD"])?;
@@ -138,6 +138,24 @@ fn rebase(root: &Path, report: &mut Report) -> Result<bool> {
     }
     let _ = git::try_run(root, &["rebase", "--abort"]);
     Ok(false)
+}
+
+/// A library just connected to a remote that already has its branch: track
+/// that branch, so the sync pulls before it pushes. Returns true when the
+/// branch now has an upstream.
+fn track_remote_branch(root: &Path) -> Result<bool> {
+    let Some(branch) = git::branch(root) else {
+        return Ok(false);
+    };
+    if !git::try_run(root, &["remote", "get-url", "origin"])?.ok {
+        return Ok(false);
+    }
+    let _ = git::try_run(root, &["fetch", "-q", "origin"]);
+    let remote_branch = format!("origin/{branch}");
+    if !git::try_run(root, &["rev-parse", "--verify", "-q", &remote_branch])?.ok {
+        return Ok(false);
+    }
+    Ok(git::try_run(root, &["branch", "-q", "-u", &remote_branch])?.ok)
 }
 
 fn count(root: &Path, rev: &str) -> Option<u32> {
