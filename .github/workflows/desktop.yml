@@ -1,0 +1,92 @@
+name: Desktop app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # The app's Rust crate is not in the root workspace, so these jobs are the
+  # only ones that build it. No signed bundles here.
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            runs-on: ubuntu-latest
+          - os: windows
+            runs-on: windows-latest
+          # While the repo is private, macOS jobs use the studio's own runner.
+          # Use macos-latest when the repo is public.
+          - os: macos
+            runs-on: [self-hosted, macOS, ARM64]
+    name: app (${{ matrix.os }})
+    runs-on: ${{ matrix.runs-on }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the Tauri build dependencies
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential file libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+            librsvg2-dev libxdo-dev libssl-dev
+      - uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
+        with:
+          working-directory: app
+          node-version: "24"
+          cache: true
+      # Formatting is checked once; Windows checkouts may change line endings.
+      - name: Format, lint and type-check
+        if: matrix.os == 'linux'
+        run: vp check
+      - name: Type-check the Svelte files
+        run: vp run check
+      - run: vp test
+      - run: vp build
+      - name: Check npm licences
+        if: matrix.os == 'linux'
+        run: |
+          vp exec pnpm licenses list --json | node scripts/licences.mjs
+          vp exec pnpm licenses list --prod --json | node scripts/licences.mjs --prod
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: app/src-tauri -> target
+      - name: cargo fmt
+        if: matrix.os == 'linux'
+        working-directory: app/src-tauri
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: app/src-tauri
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: cargo test
+        working-directory: app/src-tauri
+        run: cargo test --locked
+
+  licences:
+    name: app licences
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Uses app/src-tauri/deny.toml, next to the manifest.
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          manifest-path: app/src-tauri/Cargo.toml
+          command-arguments: licenses bans sources
