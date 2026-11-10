@@ -44,6 +44,41 @@ pub enum Command {
     Skill(SkillArgs),
     /// Report files that could not be read.
     Check,
+    /// Pin a prompt. Pins come first everywhere (⌘1 to ⌘9 in the apps).
+    Pin(PinArgs),
+    /// Remove a pin.
+    Unpin(IdArgs),
+    /// List the pins in order.
+    Pins,
+    /// Commit, pull and push the libraries.
+    Sync(SyncArgs),
+    /// Allow the shell commands of a prompt from a library you do not trust.
+    Allow(IdArgs),
+    /// Git merge driver for the pin list (set up by `shelf sync`).
+    #[command(hide = true)]
+    MergePins {
+        base: std::path::PathBuf,
+        ours: std::path::PathBuf,
+        theirs: std::path::PathBuf,
+    },
+}
+
+#[derive(Debug, Args)]
+pub struct PinArgs {
+    pub id: String,
+    /// The position, 1 to 9. Defaults to the end.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(1..=9))]
+    pub at: Option<u8>,
+}
+
+#[derive(Debug, Args)]
+pub struct SyncArgs {
+    /// Only this library.
+    #[arg(long = "lib")]
+    pub library: Option<String>,
+    /// Commit and pull, but do not push.
+    #[arg(long)]
+    pub no_push: bool,
 }
 
 #[derive(Debug, Args)]
@@ -111,6 +146,12 @@ pub struct FillArgs {
     /// A value for a blank: `--var name=value`. Repeat for each blank.
     #[arg(long = "var", value_name = "NAME=VALUE")]
     pub vars: Vec<String>,
+    /// The folder for `branch` and shell commands. Defaults to the current folder.
+    #[arg(short = 'C', long, value_name = "DIR")]
+    pub cwd: Option<std::path::PathBuf>,
+    /// Do not run shell commands from `from:`.
+    #[arg(long)]
+    pub no_run: bool,
 }
 
 #[derive(Debug, Args)]

@@ -68,6 +68,7 @@ impl Env {
         cmd.env("PROMPTSHELF_CONFIG_DIR", &self.config)
             .env("PROMPTSHELF_STATE_DIR", &self.state)
             .env("PROMPTSHELF_AGENT", if agent { "1" } else { "0" })
+            .current_dir(&self.home)
             .env("HOME", &self.home)
             .env("USERPROFILE", &self.home)
             .env_remove("XDG_CONFIG_HOME");

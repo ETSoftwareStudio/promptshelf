@@ -7,8 +7,13 @@ pub mod config;
 pub mod error;
 pub mod fill;
 pub mod fsutil;
+pub mod git;
+pub mod pins;
 pub mod prompt;
+pub mod resolve;
 pub mod shelf;
+pub mod state;
+pub mod sync;
 pub mod template;
 pub mod write;
 
