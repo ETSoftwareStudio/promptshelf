@@ -32,6 +32,17 @@
           "type": "json",
           "path": "npm/promptshelf/package.json",
           "jsonpath": "$.version"
+        },
+        "app/src-tauri/Cargo.toml",
+        {
+          "type": "json",
+          "path": "app/src-tauri/tauri.conf.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "app/package.json",
+          "jsonpath": "$.version"
         }
       ],
       "release-as": "0.1.0"

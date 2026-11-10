@@ -17,6 +17,8 @@ The desktop app for macOS, Windows and Linux: a library window, a quick panel be
 - **Inbox** — Drafts that models saved: Move to Library or Delete. Team updates: the diff, Allow for a new or changed command (it stays off until you click), Keep Previous Version, Copy to Personal and Done.
 - **Prompts** — The More menu renames (title and ID; pins and includes follow), deletes and copies to Personal. Files to Fix lists files that can not be read, says what is wrong, and opens them in an editor.
 - **Agents** — In Settings → Agents: install the `shelf` command and the Claude Code skill, and add `shelf mcp` to Claude Desktop. The Claude Desktop config keeps its other entries, and the old file is saved as `claude_desktop_config.json.bak`.
+- **About** — Settings → About shows the version and opens the GitHub repo, the release notes, a new issue, the licence and the third-party licences. About PromptShelf in the app menu opens it; the Help menu also opens the repo and a new issue.
+- **Star card** — After three new prompts or fills on five days, and at least three days after the first start, a small card at the bottom of the sidebar asks for a star on GitHub. Not Now asks once more 30 days later; Star on GitHub and Don't Ask Again end it. The counts stay in `desktop-tips.json` in the state folder. Nothing is sent anywhere. `/#star` shows the card in the browser mock.
 - **Settings** — The panel shortcut and the folder for `branch` and command blanks are in `desktop.toml` next to `config.toml`.
 
 Closing a window hides it. The app keeps running in the tray; quit it from the tray menu or with ⌘Q.
@@ -67,4 +69,4 @@ The serif is not final. To try another one, put its folder next to `src/fonts/so
 
 ## Licences
 
-The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), called from Rust only. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them.
+The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), called from Rust only. Settings → About → Third-party Licences lists every crate and npm package the app ships, with its licence. `scripts/third-party.mjs` makes the list during `vp build` and `vp dev`, from `src-tauri/Cargo.lock` and `node_modules`, so it follows every dependency change; nobody edits it by hand. Run `node scripts/third-party.mjs` to print it. The build fails when the list can not be made. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them.

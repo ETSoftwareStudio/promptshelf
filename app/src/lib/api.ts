@@ -4,6 +4,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type {
+  AboutView,
   AgentsView,
   Copied,
   Detail,
@@ -98,9 +99,13 @@ export const api = {
   dismissUpdate: (id: string) => call<void>("dismiss_update", { id }),
   getSettings: () => call<SettingsView>("get_settings"),
   setSettings: (settings: Settings) => call<SettingsView>("set_settings", { settings }),
-  openWindow: (name: "library" | "settings" | "panel", tab?: "libraries" | "agents") =>
+  openWindow: (name: "library" | "settings" | "panel", tab?: "libraries" | "agents" | "about") =>
     call<void>("open_window", { name, tab: tab ?? null }),
   hidePanel: () => call<void>("hide_panel"),
+  about: () => call<AboutView>("about"),
+  /** True when the sidebar shows the one-time star card. */
+  starCard: () => call<boolean>("star_card"),
+  answerStar: (answer: "star" | "not-now" | "never") => call<void>("answer_star", { answer }),
 };
 
 /** Opens a web page in the system browser. */

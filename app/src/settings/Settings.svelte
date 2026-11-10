@@ -1,5 +1,6 @@
 <!-- Settings: the panel shortcut and the folder resolvers run in (General),
-     the libraries and their remotes (Libraries), and agents (Agents). -->
+     the libraries and their remotes (Libraries), agents (Agents), and the
+     version and links (About). -->
 <script lang="ts">
   import { rise } from "../lib/motion";
   import { onMount } from "svelte";
@@ -8,10 +9,11 @@
   import { acceleratorFrom, displayAccelerator, isMac } from "../lib/hotkey";
   import { Toast } from "../lib/toast.svelte";
   import type { SettingsView } from "../lib/types";
+  import AboutPane from "./AboutPane.svelte";
   import AgentsPane from "./AgentsPane.svelte";
   import LibrariesPane from "./LibrariesPane.svelte";
 
-  const TABS = ["general", "libraries", "agents"] as const;
+  const TABS = ["general", "libraries", "agents", "about"] as const;
   const fromHash = TABS.find((t) => location.hash.includes(t));
   let tab = $state<(typeof TABS)[number]>(fromHash ?? "general");
   let view = $state<SettingsView | null>(null);
@@ -85,6 +87,9 @@
     <button class="stab" class:on={tab === "agents"} onclick={() => (tab = "agents")}>
       <Icon name="terminal" />Agents
     </button>
+    <button class="stab" class:on={tab === "about"} onclick={() => (tab = "about")}>
+      <Icon name="info" />About
+    </button>
   </nav>
 
   <div class="form">
@@ -139,6 +144,8 @@
       <LibrariesPane bind:this={libraries} {toast} />
     {:else if tab === "agents"}
       <AgentsPane {toast} />
+    {:else if tab === "about"}
+      <AboutPane {toast} />
     {/if}
   </div>
 </div>

@@ -29,6 +29,10 @@
     terminal: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7.5 10l3 2.5-3 2.5M12.5 15.5h4"/>',
     link: '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
     plug: '<path d="M9 3.5v4M15 3.5v4M7 7.5h10v3a5 5 0 01-10 0z"/><path d="M12 15.5v5"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/>',
+    out: '<path d="M9.5 6.5h8v8M17.5 6.5l-11 11"/>',
+    star: '<path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/>',
+    chevr: '<path d="M10 7l5 5-5 5"/>',
   } as const;
   export type IconName = keyof typeof PATHS;
 </script>

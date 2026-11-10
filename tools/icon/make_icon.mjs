@@ -24,6 +24,7 @@ const OUT_LOGO = join(ROOT, 'docs/design/logo');
 const OUT_APP = join(ROOT, 'app/src-tauri/icons');
 const OUT_PACKAGE = join(OUT_APP, 'AppIcon.icon');
 const OUT_RAYCAST = join(ROOT, 'raycast/assets');
+const OUT_UI = join(ROOT, 'app/src/assets'); // Settings → About
 
 // ---- Colours (OKLCH; neutrals tinted toward hue 265 like the app palette) ----
 const PAPER = [0.965, 0.007, 265];       // light tile, dark slash
@@ -154,6 +155,8 @@ write(OUT_LOGO, 'promptshelf-icon-light.svg', svgDoc(1024, flatLight, 'icon, lig
 write(OUT_LOGO, 'promptshelf-icon-dark.svg', svgDoc(1024, flatDark, 'icon, dark'));
 write(OUT_LOGO, 'promptshelf-mark.svg', svgDoc(1024, mono, 'one-colour mark'));
 write(OUT_LOGO, 'promptshelf-tray.svg', svgDoc(64, tray, 'menu bar template image'));
+write(OUT_UI, 'promptshelf-icon-light.svg', svgDoc(1024, flatLight, 'icon, light'));
+write(OUT_UI, 'promptshelf-icon-dark.svg', svgDoc(1024, flatDark, 'icon, dark'));
 write(OUT_APP, 'tray.svg', svgDoc(64, tray, 'menu bar template image (black; macOS tints it)'));
 
 rmSync(OUT_PACKAGE, { recursive: true, force: true });
