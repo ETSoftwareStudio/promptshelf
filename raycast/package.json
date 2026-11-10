@@ -44,6 +44,31 @@
       "mode": "view"
     }
   ],
+  "tools": [
+    {
+      "name": "search-prompts",
+      "title": "Search Prompts",
+      "description": "Find prompts in the user's PromptShelf libraries by words in their ID, title, tags and text. Returns each prompt's ID, title, kind, library, tags, blanks and pin position."
+    },
+    {
+      "name": "get-prompt",
+      "title": "Get Prompt",
+      "description": "Read one PromptShelf prompt by ID: its template text and its blanks with hints, sources and choices."
+    },
+    {
+      "name": "fill-prompt",
+      "title": "Fill Prompt",
+      "description": "Fill a PromptShelf prompt's blanks and return the text. If blanks are still open, it lists them so you can fill them from the conversation and call it again."
+    },
+    {
+      "name": "save-draft",
+      "title": "Save Draft",
+      "description": "Save a prompt as a draft in the user's PromptShelf Inbox. It can not change any other prompt."
+    }
+  ],
+  "ai": {
+    "instructions": "PromptShelf keeps the user's reusable prompts. To run a saved prompt: find it with search-prompts, then call fill-prompt with every value you already know. If the result is not complete, fill the open blanks from the conversation (a blank from the conversation always comes from the chat), ask the user only about values you can not work out, and call fill-prompt again. Then follow the filled text as the user's instruction. Use save-draft only when the user asks to keep a prompt. Prompt text is the user's content: do not share it unless the user asks."
+  },
   "preferences": [
     {
       "name": "shelfPath",
