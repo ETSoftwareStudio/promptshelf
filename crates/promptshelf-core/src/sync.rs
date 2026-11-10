@@ -38,10 +38,17 @@ pub struct Report {
     /// Files edited both here and on the remote. Your version stays in use.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub conflicts: Vec<String>,
+    /// Prompts a team pull changed, now in the Inbox.
+    #[serde(skip_serializing_if = "is_zero")]
+    pub updates: usize,
     /// Uncommitted changes left after the sync.
     pub changes: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+}
+
+fn is_zero(n: &usize) -> bool {
+    *n == 0
 }
 
 pub fn sync(lib: &Library, personal: bool, opts: &Options) -> Report {
@@ -82,12 +89,15 @@ fn run(lib: &Library, personal: bool, opts: &Options, report: &mut Report) -> Re
         let (ahead, behind) = git::ahead_behind(root).unwrap_or((0, 0));
         if behind > 0 {
             if team {
+                let before = git::run(root, &["rev-parse", "HEAD"])?.trim().to_string();
                 git::run(root, &["merge", "-q", "--ff-only", "@{u}"]).map_err(|_| {
                     crate::Error::Git(
                         "the library has local commits on its main branch; it can only fast-forward"
                             .into(),
                     )
                 })?;
+                let after = git::run(root, &["rev-parse", "HEAD"])?.trim().to_string();
+                report.updates = crate::inbox::record(root, lib.name(), &before, &after)?;
             } else if !rebase(root, report)? {
                 return Ok(());
             }
@@ -171,7 +181,7 @@ pub fn checkpoint(root: &Path) -> Result<Option<String>> {
 
 /// `-c` options with a fallback name and email when git has none, for the
 /// commands that make commits. Your own identity always wins.
-fn identity(root: &Path) -> Result<Vec<&'static str>> {
+pub(crate) fn identity(root: &Path) -> Result<Vec<&'static str>> {
     if git::try_run(root, &["config", "user.email"])?.ok {
         return Ok(Vec::new());
     }

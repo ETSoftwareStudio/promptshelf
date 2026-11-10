@@ -101,6 +101,20 @@ pub(super) fn sync(ctx: &Ctx, a: SyncArgs) -> Result<u8> {
         let is_personal = personal.as_deref() == Some(lib.name());
         reports.push(core_sync::sync(lib, is_personal, &opts));
     }
+    // Check proposals on team libraries and clean up the merged ones.
+    let mut checked = Vec::new();
+    if may_write {
+        for mut p in promptshelf_core::proposals::load() {
+            if a.library.as_deref().is_some_and(|n| n != p.library) {
+                continue;
+            }
+            if let Ok(lib) = shelf.library(&p.library) {
+                if let Ok(outcome) = promptshelf_core::proposals::check(lib, &mut p) {
+                    checked.push(json!({ "proposal": p.full_id(), "outcome": outcome }));
+                }
+            }
+        }
+    }
     if let Some(name) = &a.library {
         if reports.is_empty() {
             return Err(Error::UnknownLibrary(name.clone()));
@@ -110,7 +124,7 @@ pub(super) fn sync(ctx: &Ctx, a: SyncArgs) -> Result<u8> {
         .iter()
         .any(|r| r.error.is_some() || !r.conflicts.is_empty());
     if ctx.json {
-        output::json(json!({ "libraries": reports }));
+        output::json(json!({ "libraries": reports, "proposals": checked }));
     } else {
         for r in &reports {
             let mut parts = Vec::new();
@@ -122,6 +136,9 @@ pub(super) fn sync(ctx: &Ctx, a: SyncArgs) -> Result<u8> {
             }
             if r.pulled > 0 {
                 parts.push(format!("pulled {}", r.pulled));
+            }
+            if r.updates > 0 {
+                parts.push(format!("{} update(s) in the Inbox", r.updates));
             }
             if r.pushed > 0 {
                 parts.push(format!("pushed {}", r.pushed));

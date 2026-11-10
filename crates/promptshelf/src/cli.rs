@@ -54,6 +54,24 @@ pub enum Command {
     Sync(SyncArgs),
     /// Allow the shell commands of a prompt from a library you do not trust.
     Allow(IdArgs),
+    /// Edit a prompt in $EDITOR. In a team library this starts a proposal.
+    Edit(IdArgs),
+    /// Send a proposal to the team as a pull request, or update it.
+    Propose(ProposeArgs),
+    /// List your proposals to team libraries.
+    Proposals {
+        /// Ask the host (or git) for each proposal's state, and clean up merged ones.
+        #[arg(long)]
+        check: bool,
+    },
+    /// Withdraw a proposal: close its pull request and remove your version.
+    Withdraw(IdArgs),
+    /// Drafts and updates pulled from team libraries.
+    Inbox(InboxArgs),
+    /// Copy the text a team update replaced into Personal.
+    KeepPrevious(IdArgs),
+    /// Copy a prompt into Personal, to change it for yourself.
+    Copy(IdArgs),
     /// Git merge driver for the pin list (set up by `shelf sync`).
     #[command(hide = true)]
     MergePins {
@@ -61,6 +79,27 @@ pub enum Command {
         ours: std::path::PathBuf,
         theirs: std::path::PathBuf,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct ProposeArgs {
+    /// The prompt ID.
+    pub id: String,
+    /// The pull request title. Defaults to "Edit <id>" or "Add <id>".
+    #[arg(long)]
+    pub title: Option<String>,
+    #[arg(long)]
+    pub body: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct InboxArgs {
+    /// Clear all team updates.
+    #[arg(long)]
+    pub done: bool,
+    /// Clear the update for one prompt.
+    #[arg(long = "done-id", value_name = "ID")]
+    pub done_id: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -152,6 +191,9 @@ pub struct FillArgs {
     /// Do not run shell commands from `from:`.
     #[arg(long)]
     pub no_run: bool,
+    /// Use the team's version, not your open proposal.
+    #[arg(long)]
+    pub main: bool,
 }
 
 #[derive(Debug, Args)]

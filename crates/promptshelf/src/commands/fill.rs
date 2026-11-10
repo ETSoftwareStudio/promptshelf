@@ -30,7 +30,11 @@ pub(super) fn parse_vars(vars: &[String]) -> Result<BTreeMap<String, String>> {
 
 pub(super) fn fill_cmd(ctx: &Ctx, a: FillArgs) -> Result<u8> {
     let given = parse_vars(&a.vars)?;
-    let shelf = load()?;
+    let shelf = if a.main {
+        promptshelf_core::Shelf::load_main(promptshelf_core::Config::load()?)
+    } else {
+        load()?
+    };
     let p = shelf.resolve(&a.id)?;
     let opts = Options {
         cwd: match a.cwd {

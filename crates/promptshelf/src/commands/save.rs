@@ -2,7 +2,7 @@
 
 use std::io::Read;
 
-use promptshelf_core::write::{self, NewPrompt};
+use promptshelf_core::write::NewPrompt;
 use promptshelf_core::{Error, Kind, Result};
 use serde_json::json;
 
@@ -39,7 +39,7 @@ pub(super) fn save(ctx: &Ctx, a: SaveArgs) -> Result<u8> {
         ),
     };
     let body = read_stdin()?;
-    let (id, path) = write::create_prompt(
+    let (id, path) = super::team::create_in(
         library,
         &NewPrompt {
             title: &a.title,
@@ -72,7 +72,7 @@ pub(super) fn new(ctx: &Ctx, a: NewArgs) -> Result<u8> {
             .ok_or_else(|| Error::Invalid("no Personal library; run `shelf init`".into()))?,
     };
     let title = a.title.as_deref().unwrap_or("Untitled");
-    let (id, path) = write::create_prompt(
+    let (id, path) = super::team::create_in(
         library,
         &NewPrompt {
             title,

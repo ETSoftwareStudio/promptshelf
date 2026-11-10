@@ -111,6 +111,9 @@ pub struct Prompt {
     pub forked_from: Option<String>,
     pub body: String,
     pub path: PathBuf,
+    /// True when this is your proposed version of a team prompt.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub proposal: bool,
 }
 
 impl Prompt {
@@ -173,6 +176,7 @@ impl Prompt {
             forked_from: fm.forked_from,
             body,
             path: path.to_path_buf(),
+            proposal: false,
         })
     }
 }
