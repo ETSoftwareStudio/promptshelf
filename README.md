@@ -2,13 +2,37 @@
 
 A local-first library to save, template, reuse and share prompts. Prompts are Markdown files in a folder you own, synced with git. The `shelf` command finds and fills them, for you and for coding agents.
 
-**Status:** early development. Nothing works yet.
+**Status:** early development. The CLI and the terminal app work; the desktop app is in progress.
 
 ## Planned
 - **`shelf` CLI** — Search, show and fill prompts. Every command has `--json` output for agents.
 - **Terminal app** — Run `shelf` with no arguments.
 - **Desktop app** — macOS, Windows and Linux, with a tray panel for quick access.
 - **Sync and sharing** — Plain git. No server, no account, no telemetry.
+
+## Install
+Not released yet. When it is:
+
+<!-- x-release-please-start-version -->
+```sh
+brew install etsoftwarestudio/tap/promptshelf   # macOS and Linux
+cargo install promptshelf --version 0.0.0       # any system with Rust
+npx promptshelf@0.0.0 --help                    # try it without installing
+```
+<!-- x-release-please-end -->
+
+Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`.
+
+## Use
+```sh
+shelf init                          # create ~/Prompts/personal
+shelf new "Strict PR review"        # write a prompt in $EDITOR
+shelf                               # the terminal app: search, fill, copy
+shelf fill strict-pr-review --var focus="error handling"
+shelf skill install                 # teach Claude Code the commands
+```
+
+Every command takes `--json`. Agents with no terminal can read, fill and save drafts; other writes need a person.
 
 ## Build
 ```sh
