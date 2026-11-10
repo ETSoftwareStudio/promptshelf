@@ -182,6 +182,9 @@ pub async fn send_prompt(
         let text = text.clone();
         blocking(move || Ok(resolve::set_clipboard(&text))).await?
     };
+    if copy.is_ok() {
+        crate::tips::Tips::update(|t, now| t.filled_prompt(now));
+    }
     let mut result = SendResult {
         text,
         copied: copy.is_ok(),
@@ -204,11 +207,13 @@ pub async fn send_prompt(
     Ok(result)
 }
 
+mod about;
 mod agents;
 mod links;
 mod manage;
 mod more;
 mod team;
+pub use about::*;
 pub use agents::*;
 pub use links::*;
 pub use manage::*;

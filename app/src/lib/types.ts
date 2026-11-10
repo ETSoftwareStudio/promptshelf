@@ -291,3 +291,12 @@ export interface CopiedLink {
   link: string;
   copied: boolean;
 }
+
+/** Settings → About: the version and the project's links, from the Rust side. */
+export interface AboutView {
+  version: string;
+  /** `std::env::consts::OS`: "macos", "windows", "linux". */
+  os: string;
+  arch: string;
+  links: { repo: string; releases: string; issue: string; licence: string; site: string };
+}

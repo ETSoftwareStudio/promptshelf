@@ -1,7 +1,8 @@
 // The state of the browser mock: libraries, the last syncs, proposals, the
 // Inbox and agents. Words in the URL hash pick a case to look at:
 // `firstrun`, `noremote`, `conflict`, `pusherror`, `nogit`, `nogh`,
-// `signedout`, `noidentity`, `problems`. Every name is made up.
+// `signedout`, `noidentity`, `problems`, `star` (the star card). Every name
+// is made up.
 
 import type {
   AgentsView,

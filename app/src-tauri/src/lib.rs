@@ -2,6 +2,7 @@
 //! icon and a global shortcut, and Settings. The Rust side links
 //! `promptshelf-core`; the UI is Svelte in `app/src`.
 
+pub mod about;
 pub mod agents;
 mod commands;
 pub mod links;
@@ -11,6 +12,7 @@ mod paste;
 pub mod service;
 pub mod settings;
 pub mod team;
+pub mod tips;
 pub mod views;
 mod windows;
 pub mod writes;
@@ -134,6 +136,9 @@ pub fn run() {
             commands::take_link,
             commands::link_handled,
             commands::copy_link,
+            commands::about,
+            commands::star_card,
+            commands::answer_star,
         ])
         .build(tauri::generate_context!())
         .expect("could not start PromptShelf");
