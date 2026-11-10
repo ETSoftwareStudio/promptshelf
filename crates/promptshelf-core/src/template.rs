@@ -251,8 +251,7 @@ pub fn render(
             }
         }
     }
-    let mut text = String::new();
-    write(shelf, prompt, values, &mut text, &mut Vec::new())?;
+    let text = to_text(&pieces(shelf, prompt, values)?);
     let mut filled = Vec::new();
     let mut missing = Vec::new();
     for (name, spec) in specs {
@@ -276,32 +275,88 @@ pub fn render(
     })
 }
 
+/// A piece of filled text: plain text, a filled value, or an open blank.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Piece {
+    Text(String),
+    Value { name: String, value: Value },
+    Open { name: String },
+}
+
+impl Piece {
+    fn push_text(pieces: &mut Vec<Piece>, s: &str) {
+        if let Some(Piece::Text(last)) = pieces.last_mut() {
+            last.push_str(s);
+        } else if !s.is_empty() {
+            pieces.push(Piece::Text(s.to_string()));
+        }
+    }
+}
+
+/// The filled text as pieces, so a UI can colour each value by its source.
+pub fn pieces(
+    shelf: &Shelf,
+    prompt: &Prompt,
+    values: &BTreeMap<String, Value>,
+) -> Result<Vec<Piece>> {
+    let mut out = Vec::new();
+    write(shelf, prompt, values, &mut out, &mut Vec::new())?;
+    Ok(out)
+}
+
+/// Joins pieces into text. Open blanks stay as `{{name}}`.
+pub fn to_text(pieces: &[Piece]) -> String {
+    let mut s = String::new();
+    for p in pieces {
+        match p {
+            Piece::Text(t) => s.push_str(t),
+            Piece::Value { value, .. } => s.push_str(&value.value),
+            Piece::Open { name } => {
+                s.push_str("{{");
+                s.push_str(name);
+                s.push_str("}}");
+            }
+        }
+    }
+    s
+}
+
 fn write(
     shelf: &Shelf,
     prompt: &Prompt,
     values: &BTreeMap<String, Value>,
-    out: &mut String,
+    out: &mut Vec<Piece>,
     stack: &mut Vec<String>,
 ) -> Result<()> {
     enter(prompt, stack)?;
     for seg in parse(&prompt.body) {
         match seg {
-            Segment::Text(t) => out.push_str(&t),
+            Segment::Text(t) => Piece::push_text(out, &t),
             Segment::Var(name) => match values.get(&name) {
-                Some(v) => out.push_str(&v.value),
-                None => {
-                    out.push_str("{{");
-                    out.push_str(&name);
-                    out.push_str("}}");
-                }
+                Some(v) => out.push(Piece::Value {
+                    name,
+                    value: v.clone(),
+                }),
+                None => out.push(Piece::Open { name }),
             },
             Segment::Include(id) => {
                 let inner = include(shelf, prompt, &id)?;
-                let start = out.len();
-                write(shelf, inner, values, out, stack)?;
+                let mut included = Vec::new();
+                write(shelf, inner, values, &mut included, stack)?;
                 // An included file usually ends with a newline; inline it cleanly.
-                if out.len() > start && out.ends_with('\n') {
-                    out.pop();
+                if let Some(Piece::Text(last)) = included.last_mut() {
+                    if last.ends_with('\n') {
+                        last.pop();
+                        if last.is_empty() {
+                            included.pop();
+                        }
+                    }
+                }
+                for piece in included {
+                    match piece {
+                        Piece::Text(s) => Piece::push_text(out, &s),
+                        other => out.push(other),
+                    }
                 }
             }
         }
