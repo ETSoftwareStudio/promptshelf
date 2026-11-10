@@ -3,7 +3,7 @@
 //! app both call these.
 
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use crate::config::{Config, LibraryConfig, Writes, expand_tilde};
 use crate::error::{Error, Result};
@@ -144,7 +144,7 @@ pub fn clone(url: &str, dest: &std::path::Path, show_progress: bool) -> Result<(
     if let Some(parent) = dest.parent() {
         std::fs::create_dir_all(parent).map_err(|e| Error::io(parent, e))?;
     }
-    let mut cmd = Command::new("git");
+    let mut cmd = crate::tools::command("git");
     cmd.args(["clone", "--", url]).arg(dest);
     if show_progress {
         let status = cmd

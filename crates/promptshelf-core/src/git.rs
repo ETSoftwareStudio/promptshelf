@@ -14,7 +14,7 @@ pub struct Run {
 }
 
 fn command(dir: &Path, args: &[&str]) -> Command {
-    let mut cmd = Command::new("git");
+    let mut cmd = crate::tools::command("git");
     cmd.arg("-C")
         .arg(dir)
         .args(args)

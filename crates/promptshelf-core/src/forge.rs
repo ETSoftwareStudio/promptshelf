@@ -2,7 +2,7 @@
 //! its state. Everything else is plain git, so any git host works.
 
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use serde::{Deserialize, Serialize};
 
@@ -87,7 +87,7 @@ pub struct Request<'a> {
 }
 
 fn has_tool(name: &str) -> bool {
-    Command::new(name)
+    crate::tools::command(name)
         .arg("--version")
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -146,7 +146,7 @@ pub fn open(forge: Forge, worktree: &Path, remote_url: &str, req: &Request) -> R
             let repo = repo_path(remote_url);
             if has_tool("gh") {
                 if let Some(repo) = &repo {
-                    let out = Command::new("gh")
+                    let out = crate::tools::command("gh")
                         .args(["pr", "create", "--repo", repo, "--head", req.branch])
                         .args(["--base", req.base, "--title", req.title, "--body", req.body])
                         .current_dir(worktree)
@@ -194,7 +194,7 @@ pub fn state(forge: Forge, remote_url: &str, number: Option<u64>) -> Option<Host
         return None;
     }
     let repo = repo_path(remote_url)?;
-    let out = Command::new("gh")
+    let out = crate::tools::command("gh")
         .args(["pr", "view", &number.to_string(), "--repo", &repo])
         .args(["--json", "state,reviewDecision"])
         .stdin(Stdio::null())
