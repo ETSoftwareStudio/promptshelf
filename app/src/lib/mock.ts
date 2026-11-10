@@ -146,6 +146,9 @@ function overview(): Overview {
       exists: Boolean(find(id)),
     })),
     diagnostics: [],
+    updates: 0,
+    proposals: 0,
+    syncProblems: [],
   };
 }
 
@@ -171,6 +174,8 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
         body: p!.body,
         vars: p!.vars,
         file: file(p!),
+        writes: p!.library === "acme-eng" ? "pull-request" : "commit",
+        blocked: [],
       } satisfies Detail;
     case "fill_prompt": {
       await wait(250);

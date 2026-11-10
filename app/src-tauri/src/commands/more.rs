@@ -4,7 +4,7 @@
 use promptshelf_core::sync::Report;
 use promptshelf_core::{Config, Kind, tools};
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use super::{AppState, CmdResult, blocking, msg};
 use crate::manage;
@@ -165,12 +165,18 @@ pub async fn set_settings(
     Ok(settings_view(&state))
 }
 
-/// Opens one of the app's windows: "library", "settings" or "panel".
+/// Opens one of the app's windows: "library", "settings" or "panel". For
+/// Settings, `tab` picks the tab.
 #[tauri::command]
-pub async fn open_window(app: AppHandle, name: String) -> CmdResult<()> {
+pub async fn open_window(app: AppHandle, name: String, tab: Option<String>) -> CmdResult<()> {
     match name.as_str() {
         "library" => windows::show_library(&app),
-        "settings" => windows::show_settings(&app),
+        "settings" => {
+            windows::show_settings(&app);
+            if let Some(tab) = tab {
+                let _ = app.emit("settings-tab", tab);
+            }
+        }
         "panel" => windows::show_panel(&app, None),
         other => return Err(format!("no window named {other}")),
     }
@@ -183,4 +189,24 @@ pub async fn hide_panel(app: AppHandle) -> CmdResult<()> {
         w.hide().map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// Opens a web page in the system browser: pull requests and help pages.
+#[tauri::command]
+pub async fn open_url(url: String) -> CmdResult<()> {
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err(format!("{url} is not a web address"));
+    }
+    let program = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(windows) {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    std::process::Command::new(program)
+        .arg(&url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("could not open {url}: {e}"))
 }

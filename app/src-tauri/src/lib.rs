@@ -96,6 +96,7 @@ pub fn run() {
             commands::set_settings,
             commands::open_window,
             commands::hide_panel,
+            commands::open_url,
             commands::pick_folder,
             commands::environment,
             commands::set_git_identity,
