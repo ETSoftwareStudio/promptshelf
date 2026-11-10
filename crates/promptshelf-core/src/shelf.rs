@@ -127,7 +127,36 @@ pub struct Shelf {
 }
 
 impl Shelf {
+    /// Loads every library. Your open proposals replace the team's version of
+    /// those prompts, so on this machine a prompt you proposed fills with your
+    /// text. [`Shelf::load_main`] skips that.
     pub fn load(config: Config) -> Self {
+        let mut shelf = Self::load_main(config);
+        shelf.overlay_proposals();
+        shelf
+    }
+
+    fn overlay_proposals(&mut self) {
+        for p in crate::proposals::load() {
+            let Some(lib) = self.libraries.iter_mut().find(|l| l.name() == p.library) else {
+                continue;
+            };
+            let path = crate::proposals::file_in_worktree(lib, &p);
+            let kind = lib.get(&p.id).map(|x| x.kind).unwrap_or(Kind::Template);
+            let Ok(mut prompt) = Prompt::load(&path, &p.library, kind) else {
+                continue;
+            };
+            if prompt.id != p.id {
+                continue;
+            }
+            prompt.proposal = true;
+            lib.prompts.retain(|x| x.id != p.id);
+            lib.prompts.push(prompt);
+        }
+    }
+
+    /// Loads every library as it is on its main branch.
+    pub fn load_main(config: Config) -> Self {
         let mut diagnostics = Vec::new();
         let libraries = config
             .libraries

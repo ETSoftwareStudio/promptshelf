@@ -6,10 +6,13 @@
 pub mod config;
 pub mod error;
 pub mod fill;
+pub mod forge;
 pub mod fsutil;
 pub mod git;
+pub mod inbox;
 pub mod pins;
 pub mod prompt;
+pub mod proposals;
 pub mod resolve;
 pub mod shelf;
 pub mod state;
