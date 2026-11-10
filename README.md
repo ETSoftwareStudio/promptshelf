@@ -58,5 +58,7 @@ The workspace has two crates:
 
 The desktop app is in `app/`, outside the workspace. See [app/README.md](app/README.md).
 
+The Raycast extension is in [`raycast/`](raycast/README.md). It calls `shelf --json`.
+
 ## Licence
 MIT. See [LICENSE](LICENSE).
