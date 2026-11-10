@@ -8,6 +8,7 @@ pub mod error;
 pub mod fsutil;
 pub mod prompt;
 pub mod shelf;
+pub mod template;
 
 pub use error::{Error, Result};
 pub use config::Config;
