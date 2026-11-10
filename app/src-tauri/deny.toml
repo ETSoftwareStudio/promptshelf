@@ -20,6 +20,9 @@ exceptions = [
   { crate = "option-ext", allow = ["MPL-2.0"] }, # tauri → dirs
   # Build-time only, on Linux (system-deps). A permissive Apache variant.
   { crate = "target-lexicon", allow = ["Apache-2.0 WITH LLVM-exception"] },
+  # Build-time only, on Linux: tauri-plugin-deep-link → rust-ini →
+  # const-random-macro. CC0 gives the code to the public domain.
+  { crate = "tiny-keccak", allow = ["CC0-1.0"] },
 ]
 
 [bans]

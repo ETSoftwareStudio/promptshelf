@@ -1,6 +1,7 @@
 // A pretend shelf for `vp dev` in a plain browser, so the UI can be built and
 // looked at without Tauri. Only dev builds load it. Every name is made up.
 
+import { isCommand } from "./filler.svelte";
 import { PINS, PROMPTS, RESOLVED, type MockPrompt } from "./mock-data";
 import { callAbout } from "./mock-about";
 import { callMore } from "./mock-more";
@@ -9,6 +10,7 @@ import type {
   Detail,
   FillView,
   Kind,
+  Link,
   Overview,
   Piece,
   Query,
@@ -20,6 +22,31 @@ import type {
 } from "./types";
 
 let pins = [...PINS];
+
+/** Links that `#link-<name>` in the URL hash sends at start-up. */
+const LINKS: Record<string, Link> = {
+  open: { route: "open", library: "personal", id: "strict-pr-review" },
+  fill: { route: "fill", library: "personal", id: "strict-pr-review" },
+  search: { route: "search", query: "release" },
+  new: { route: "new", title: "Standup notes" },
+  missing: { route: "open", library: "personal", id: "no-such-prompt" },
+  bad: { route: "bad", reason: '"import" links are not supported yet' },
+};
+
+let pendingLink: Link | null =
+  typeof location === "undefined"
+    ? null
+    : (LINKS[/#link-(\w+)/.exec(location.hash)?.[1] ?? ""] ?? null);
+
+/** Sends a link to the library window, as the Tauri side does when the
+ *  system opens a `promptshelf://` link. In the browser console:
+ *  `mockLink({ route: "fill", library: "personal", id: "strict-pr-review" })`. */
+export function mockLink(link: Link): void {
+  pendingLink = link;
+  window.dispatchEvent(new CustomEvent("mock:link"));
+}
+
+if (typeof window !== "undefined") Object.assign(window, { mockLink });
 
 const fullId = (p: MockPrompt) => `${p.library}/${p.id}`;
 const find = (id: string) => PROMPTS.find((p) => fullId(p) === id || p.id === id);
@@ -160,6 +187,7 @@ const NO_RESULT = new Set([
   "delete_prompt",
   "save_file",
   "open_url",
+  "link_handled",
 ]);
 
 let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/payments" };
@@ -198,7 +226,8 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
       const values: Record<string, Value> = {};
       for (const [name, spec] of Object.entries(p!.vars)) {
         if (given[name]) values[name] = { value: given[name], source: "given" };
-        else if (RESOLVED[name] && spec.from) values[name] = RESOLVED[name];
+        else if (RESOLVED[name] && spec.from && (a.run !== false || !isCommand(spec.from)))
+          values[name] = RESOLVED[name];
         else if (spec.default) values[name] = { value: spec.default, source: "default" };
       }
       const view = render(p!, values);
@@ -266,6 +295,13 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
     case "open_window":
     case "hide_panel":
       return undefined;
+    case "take_link": {
+      const link = pendingLink;
+      pendingLink = null;
+      return link;
+    }
+    case "copy_link":
+      return { link: `promptshelf://open/${fullId(p!)}`, copied: true };
   }
   throw new Error(`mock: no command ${cmd}`);
 }

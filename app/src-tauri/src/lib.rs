@@ -5,6 +5,7 @@
 pub mod about;
 pub mod agents;
 mod commands;
+pub mod links;
 pub mod manage;
 mod menu;
 mod paste;
@@ -44,9 +45,12 @@ pub fn apply_hotkey(app: &AppHandle, hotkey: &str) -> Result<(), String> {
 pub fn run() {
     let settings = Settings::load();
     let app = tauri::Builder::default()
+        // First: on Windows and Linux a link starts a second copy of the
+        // app, and this hands its link to the running one (`deep-link`).
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             windows::show_library(app);
         }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -63,6 +67,7 @@ pub fn run() {
         .setup(move |app| {
             let handle = app.handle().clone();
             menu::tray(&handle)?;
+            commands::listen(&handle);
             if let Err(e) = apply_hotkey(&handle, &settings.hotkey) {
                 let state = handle.state::<AppState>();
                 *state.hotkey_error.lock().expect("hotkey lock") = Some(e);
@@ -128,6 +133,9 @@ pub fn run() {
             commands::allow_commands,
             commands::keep_previous,
             commands::dismiss_update,
+            commands::take_link,
+            commands::link_handled,
+            commands::copy_link,
             commands::about,
             commands::star_card,
             commands::answer_star,

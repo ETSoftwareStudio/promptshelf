@@ -30,6 +30,8 @@ pub struct AppState {
     pub hotkey_error: Mutex<Option<String>>,
     /// The last sync of each library in this run, for the sidebar and Settings.
     pub last_sync: Mutex<service::LastSyncs>,
+    /// The last `promptshelf://` link, until the library window takes it.
+    pub pending_link: Mutex<Option<crate::links::Link>>,
 }
 
 pub(crate) type CmdResult<T> = Result<T, String>;
@@ -66,10 +68,10 @@ impl AppState {
         *self.shelf.lock().expect("shelf lock") = None;
     }
 
-    fn options(&self) -> Options {
+    fn options(&self, run_commands: bool) -> Options {
         Options {
             cwd: self.settings.lock().expect("settings lock").cwd(),
-            run_commands: true,
+            run_commands,
         }
     }
 }
@@ -127,15 +129,17 @@ pub async fn get_prompt(state: State<'_, AppState>, id: String) -> CmdResult<Det
 }
 
 /// Fills a prompt with its resolvers. They can run shell commands, so this
-/// runs off the main thread.
+/// runs off the main thread. `run: false` holds the commands back, as
+/// `--no-run` does; a prompt that a link opened starts that way.
 #[tauri::command]
 pub async fn fill_prompt(
     state: State<'_, AppState>,
     id: String,
     given: BTreeMap<String, String>,
+    run: Option<bool>,
 ) -> CmdResult<FillView> {
     let shelf = state.shelf().map_err(msg)?;
-    let opts = state.options();
+    let opts = state.options(run.unwrap_or(true));
     blocking(move || service::fill(&shelf, &id, &given, &opts).map_err(msg)).await
 }
 
@@ -205,11 +209,13 @@ pub async fn send_prompt(
 
 mod about;
 mod agents;
+mod links;
 mod manage;
 mod more;
 mod team;
 pub use about::*;
 pub use agents::*;
+pub use links::*;
 pub use manage::*;
 pub use more::*;
 pub use team::*;

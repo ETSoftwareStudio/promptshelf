@@ -20,6 +20,7 @@
   import { api, copyInBrowser, errorText, onEvent } from "../lib/api";
   import { Filler } from "../lib/filler.svelte";
   import { libraryKey } from "../lib/keys";
+  import { cantOpen, linkPlan } from "../lib/links";
   import { inboxGroups, problemGroups, proposalGroups, updateKey } from "../lib/lists";
   import { navQuery, navTitle, syncSummary } from "../lib/nav";
   import { onFocus } from "../lib/platform";
@@ -28,6 +29,7 @@
     Detail as DetailT,
     InboxView,
     Kind,
+    Link,
     Overview,
     ProposalView,
     Summary,
@@ -57,6 +59,14 @@
   let syncing = $state(false);
   let refreshing = $state(false);
   let syncNote = $state("");
+  /** The title a `promptshelf://new?title=` link gives the New prompt sheet. */
+  let newTitle = $state("");
+  /** False until the window has asked for a waiting link, so nothing is
+   *  selected before the link says what to show. */
+  let linkReady = false;
+  /** True after a link until you pick a prompt: prompts that show in the
+   *  meantime hold their commands back. */
+  let linkHold = false;
   let searchEl = $state<HTMLInputElement>();
   let detailView = $state<ReturnType<typeof Detail>>();
   let promptActions = $state<ReturnType<typeof PromptActions>>();
@@ -90,7 +100,7 @@
 
   let listSeq = 0;
   async function loadList(keep = true) {
-    if (!overview?.hasConfig) return;
+    if (!overview?.hasConfig || !linkReady) return;
     const seq = ++listSeq;
     listing = true;
     try {
@@ -137,7 +147,7 @@
       const d = await api.get(id);
       if (selected !== id) return;
       detail = d;
-      void filler.load(id);
+      void filler.load(id, !linkHold);
     } catch (e) {
       detail = null;
       toast.show(errorText(e), true);
@@ -154,6 +164,79 @@
       } catch {
         await select(items[0]?.fullId ?? null);
       }
+    }
+  }
+
+  /** You picked a prompt: commands run again. */
+  function pick(id: string | null, pin = false) {
+    linkHold = false;
+    return pin && id ? openPin(id) : select(id);
+  }
+
+  async function takeLink(): Promise<Link | null> {
+    try {
+      return await api.takeLink();
+    } catch {
+      return null;
+    }
+  }
+
+  /** Follows a `promptshelf://` link. At start-up (`first`) it also loads
+   *  the list when the link does not. */
+  async function followLink(link: Link, first = false) {
+    linkHold = true;
+    const plan = linkPlan(link, {
+      configured: Boolean(overview?.hasConfig),
+      busy: Boolean(sheet || syncSheet || editing || promptActions?.isOpen()),
+    });
+    let outcome = "opened the window";
+    if (plan.kind === "toast") {
+      toast.show(plan.text, true, 5000);
+      outcome = `showed "${plan.text}"`;
+    } else if (plan.kind === "prompt") {
+      const id = plan.fullId;
+      try {
+        await api.get(id);
+        nav = "all";
+        fromPin = null;
+        clearQuery();
+        await loadList();
+        selected = null;
+        await select(id);
+        if (plan.send) sheet = "send";
+        outcome = plan.send ? `opened the Send preview of ${id}` : `selected ${id}`;
+        first = false;
+      } catch {
+        const text = cantOpen(`no prompt ${id}`);
+        toast.show(text, true, 5000);
+        outcome = `showed "${text}"`;
+      }
+    } else if (plan.kind === "search") {
+      nav = "all";
+      fromPin = null;
+      clearTimeout(timer);
+      query = plan.query;
+      lastQuery = plan.query;
+      await loadList(false);
+      outcome = "searched All Prompts";
+      first = false;
+    } else if (plan.kind === "new") {
+      newTitle = plan.title;
+      sheet = "new";
+      outcome = "opened the New prompt sheet";
+    }
+    if (first) await loadList(false);
+    void api.linkHandled(outcome).catch(() => {});
+  }
+
+  async function copyLink() {
+    if (!detail) return;
+    try {
+      const r = await api.copyLink(detail.fullId);
+      const copied = r.copied || (await copyInBrowser(r.link));
+      toast.show(copied ? `Copied ${r.link}` : "Could not copy the link.", !copied);
+    } catch (e) {
+      toast.show(errorText(e), true);
     }
   }
 
@@ -335,12 +418,13 @@
     if (typeof key === "object") {
       const pin = overview?.pins[key.pin - 1];
       if (!pin) return;
-      void openPin(pin.fullId);
+      void pick(pin.fullId, true);
     } else if (key === "find") {
       if (special) setNav("all");
       searchEl?.focus();
       searchEl?.select();
     } else if (key === "new") {
+      newTitle = "";
       sheet = "new";
     } else if (!detail || editing) {
       return;
@@ -353,12 +437,27 @@
   }
 
   onMount(() => {
-    void loadOverview().then(() => loadList(false));
+    const startup = (async () => {
+      await loadOverview();
+      const link = await takeLink();
+      linkReady = true;
+      if (link) await followLink(link, true);
+      else await loadList(false);
+    })();
     const stops = [
+      onEvent("link", () => {
+        void startup.then(async () => {
+          const link = await takeLink();
+          if (link) await followLink(link);
+        });
+      }),
       onFocus(() => void refresh()),
       onEvent("shelf-changed", () => void refresh()),
       onEvent<string>("menu", (id) => {
-        if (id === "new-prompt") sheet = "new";
+        if (id === "new-prompt") {
+          newTitle = "";
+          sheet = "new";
+        }
         else if (id === "sync") void sync();
         else if (id === "find") searchEl?.focus();
       }),
@@ -384,7 +483,7 @@
       {syncing}
       {syncNote}
       onnav={setNav}
-      onpin={(id) => void openPin(id)}
+      onpin={(id) => void pick(id, true)}
       onsync={() => void sync()}
       onaddlib={() => (sheet = "addlib")}
       onsyncproblem={(lib) => (syncSheet = lib)}
@@ -400,7 +499,7 @@
           : nav === "proposals"
             ? "No proposals. Edit a prompt in a team library to start one."
             : "Every file reads."}
-        onselect={(key) => void select(key)}
+        onselect={(key) => void pick(key)}
       >
         {#snippet tools()}
           {#if nav === "proposals"}
@@ -419,8 +518,11 @@
         bind:searchEl
         loading={listing}
         personal={overview.personal}
-        onselect={(id) => void select(id)}
-        onnew={() => (sheet = "new")}
+        onselect={(id) => void pick(id)}
+        onnew={() => {
+          newTitle = "";
+          sheet = "new";
+        }}
         onopen={() => detail && (sheet = "send")}
       />
     {/if}
@@ -444,7 +546,7 @@
         onpin={() => void togglePin()}
         onsend={() => (sheet = "send")}
         onsaved={(id) => void saved(id)}
-        onaction={(a) => promptActions?.run(a)}
+        onaction={(a) => (a === "link" ? void copyLink() : promptActions?.run(a))}
       />
       <PromptActions
         bind:this={promptActions}
@@ -465,12 +567,15 @@
     title={detail.title}
     text={filler.view.sendText}
     open={filler.view.missing.length}
+    waiting={filler.waiting().length}
     busy={sending}
+    onrun={() => void filler.runCommands()}
     oncopy={() => void copy()}
     oncancel={() => (sheet = null)}
   />
 {:else if sheet === "new" && overview}
   <NewPromptSheet
+    title={newTitle}
     libraries={overview.libraries}
     personal={overview.personal}
     oncreate={(t, k, l) => void create(t, k, l)}

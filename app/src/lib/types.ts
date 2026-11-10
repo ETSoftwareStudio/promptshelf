@@ -279,6 +279,19 @@ export interface Group {
   rows: Row[];
 }
 
+/** Where a `promptshelf://` link goes, as `src-tauri/src/links.rs` parses it. */
+export type Link =
+  | { route: "home" }
+  | { route: "open" | "fill"; library: string; id: string }
+  | { route: "search"; query: string }
+  | { route: "new"; title: string | null }
+  | { route: "bad"; reason: string };
+
+export interface CopiedLink {
+  link: string;
+  copied: boolean;
+}
+
 /** Settings → About: the version and the project's links, from the Rust side. */
 export interface AboutView {
   version: string;

@@ -23,7 +23,8 @@ promptshelf = { path = "../../crates/promptshelf" }
 tauri = { version = "2.12", features = ["tray-icon", "image-png", "macos-private-api"] }
 tauri-plugin-dialog = "2.8"
 tauri-plugin-global-shortcut = "2.4"
-tauri-plugin-single-instance = "2.5"
+tauri-plugin-deep-link = "2.6"
+tauri-plugin-single-instance = { version = "2.5", features = ["deep-link"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "1.2"

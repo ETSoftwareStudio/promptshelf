@@ -7,6 +7,8 @@
     title,
     text,
     open = 0,
+    waiting = 0,
+    onrun,
     paste = false,
     pasteNote = null,
     busy = false,
@@ -18,6 +20,9 @@
     text: string;
     /** How many blanks are still open. */
     open?: number;
+    /** How many of them wait for commands that a link held back. */
+    waiting?: number;
+    onrun?: () => void;
     /** Offer "Paste into the front app" (the quick panel does). */
     paste?: boolean;
     pasteNote?: string | null;
@@ -56,6 +61,13 @@
     <p class="openn">
       {open === 1 ? "1 blank is" : `${open} blanks are`} still open. The prompt asks the model to fill
       {open === 1 ? "it" : "them"} from the chat.
+    </p>
+  {/if}
+  {#if waiting > 0 && onrun}
+    <p class="openn">
+      {waiting === 1 ? "1 blank waits" : `${waiting} blanks wait`} for a command. A link opened
+      this prompt, so commands did not run.
+      <button class="btn sm" onclick={onrun}>Run Commands</button>
     </p>
   {/if}
   <div class="out">{text}</div>

@@ -2,7 +2,15 @@
      the editor. -->
 <script lang="ts" module>
   /** What the person asked for in the menu or a banner. */
-  export type Action = "rename" | "delete" | "copy" | "move" | "propose" | "withdraw" | "allow";
+  export type Action =
+    | "rename"
+    | "delete"
+    | "copy"
+    | "move"
+    | "propose"
+    | "withdraw"
+    | "allow"
+    | "link";
 </script>
 
 <script lang="ts">
@@ -60,6 +68,12 @@
     }
   }
 
+  /** The commands of blanks that wait for Run Commands. */
+  const waiting = $derived(
+    filler
+      .waiting()
+      .map((name) => filler.base?.missing.find((m) => m.name === name)?.from ?? name),
+  );
   const kindLabel = $derived(detail.kind === "draft" ? "draft in the Inbox" : detail.kind);
   const team = $derived(detail.writes === "pull-request");
   const prop = $derived(detail.proposalInfo);
@@ -67,6 +81,7 @@
   const items = $derived.by(() => {
     const out: MenuItem[] = [];
     const act = (a: Action) => () => onaction?.(a);
+    out.push({ label: "Copy Link", run: act("link") });
     if (detail.kind === "draft") out.push({ label: "Move to Library…", run: act("move") });
     if (!team) out.push({ label: "Rename…", run: act("rename") });
     if (detail.library !== personal) out.push({ label: "Copy to Personal", run: act("copy") });
@@ -160,6 +175,21 @@
     {#if editing}
       <Editor bind:text path={detail.path} {error} {saving} onsave={save} oncancel={() => (editing = false)} />
     {:else}
+      {#if waiting.length}
+        <div class="banner info">
+          <Icon name="warn" small />
+          <div class="grow">
+            <p>
+              A link opened this prompt, so {waiting.length === 1 ? "its command" : "its commands"} did
+              not run:
+            </p>
+            {#each waiting as c (c)}<p><code>{c}</code></p>{/each}
+            <div class="acts">
+              <button class="btn sm" onclick={() => void filler.runCommands()}>Run Commands</button>
+            </div>
+          </div>
+        </div>
+      {/if}
       {#if filler.error}<div class="banner" role="alert"><Icon name="warn" small />{filler.error}</div>{/if}
       <FilledPrompt {filler} title={detail.title} />
       {#if filler.resolving}<p class="busy">Looking up values…</p>{/if}

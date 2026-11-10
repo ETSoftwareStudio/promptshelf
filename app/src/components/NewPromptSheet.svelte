@@ -5,18 +5,22 @@
   import type { Kind, LibraryInfo } from "../lib/types";
 
   let {
+    title: initial = "",
     libraries,
     personal,
     oncreate,
     oncancel,
   }: {
+    /** The title to start with, from a `promptshelf://new?title=` link. */
+    title?: string;
     libraries: LibraryInfo[];
     personal: string | null | undefined;
     oncreate: (title: string, kind: Kind, library: string) => void;
     oncancel: () => void;
   } = $props();
 
-  let title = $state("");
+  // svelte-ignore state_referenced_locally
+  let title = $state(initial);
   let kind = $state<Kind>("template");
   // svelte-ignore state_referenced_locally
   let library = $state(personal ?? libraries[0]?.name ?? "");
