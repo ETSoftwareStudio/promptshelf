@@ -12,7 +12,7 @@ How it looks and sounds. It follows the studio's design rules: OKLCH colours, no
 | --- | --- |
 | `margin-full.html` | The prototype. Open it in a browser. Data in it is made up. |
 | `screenshots/` | Every screen of `margin-full.html`, light and dark, 744 × 640. Raycast screens use a neutral Raycast-like window, not the Margin chrome. |
-| `logo/` | App icon and logo. None yet. |
+| `logo/` | The app icon and the mark as SVG. `tools/icon/make_icon.mjs` writes them. |
 
 ## Mockups
 Built in a scratch project with the [impeccable](https://impeccable.style) method. The [exploration report](../exploration-and-design.md) explains each step.
@@ -79,6 +79,20 @@ OKLCH is the source of truth. Neutrals are tinted toward hue 265.
 - **Unresolved value** — A dashed outline in ink2, no fill.
 - **Diffs** — Red strikethrough for removals, a blue tint for additions. Never green, so they do not look like "from the repo".
 - **Re-tint (2026-11-01)** — The first palette broke the studio's colour rule (no hue 265–330 with chroma above 0.08): the accent was ink blue at hue 268 and the conversation colour was violet at hue 300. The accent moved to hue 255 (still blue). The conversation colour became rose at hue 355. Cyan (hue 215) was also tried and rejected: it looked like the blue diff insertions. `margin-full.html` now passes the colour check.
+
+## Logo
+A slash command leans on a text cursor, and both stand on a shelf. The slash is how you run a saved prompt in Claude Code, Raycast and Slack. The cursor is where you type it. The shelf is the library.
+
+| Light | Dark |
+| --- | --- |
+| ![Icon, light](logo/promptshelf-icon-light.svg) | ![Icon, dark](logo/promptshelf-icon-dark.svg) |
+
+- **Source** — `tools/icon/make_icon.mjs` writes every icon from one set of OKLCH colours. Edit the script, then run `node tools/icon/make_icon.mjs`. Do not edit the files it writes.
+- **Colours** — Light: paper tile oklch(96.5% 0.007 265), ink slash oklch(22% 0.014 265), amber cursor oklch(64% 0.16 60), shelf oklch(78% 0.012 265). Dark: tile oklch(24% 0.014 265), paper slash, cursor oklch(82% 0.15 80), shelf oklch(58% 0.012 265). Amber is used only in the logo, not in the app.
+- **macOS** — `app/src-tauri/icons/AppIcon.icon` is an Icon Composer package. Tauri compiles it when it bundles the app, so the Dock shows the light, dark, clear and tinted versions. In clear and tinted, macOS draws the mark in one colour. The slash and the cursor are separate shapes with a gap, so the mark still reads. `icon.icns` is the fallback for macOS before 26.
+- **Menu bar** — A black template image. macOS colours it for a light or dark menu bar.
+- **Raycast** — `icon.png` for the light theme, `icon@dark.png` for the dark theme.
+- **Wordmarks** — "PromptShelf" in Source Serif 4 semibold, for the app, the website and the store. `/shelf` in a monospace font with an amber cursor after it, for the README and the command-line docs. The icon goes to the left of either, about 1.5 times the font size.
 
 ## Type
 - **SF Pro** — The interface.
