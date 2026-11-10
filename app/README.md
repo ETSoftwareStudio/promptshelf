@@ -15,11 +15,40 @@ The desktop app for macOS, Windows and Linux: a library window, a quick panel be
 - **Sync** — The sidebar syncs every library. When a file changed here and on the remote, the sync stops and keeps your version. Sync needs a look then lists the files and offers Keep both, Keep this computer's version or Use the remote's version. Nothing is force-pushed.
 - **Teams** — In a team library, Edit makes a proposal on this computer; the main folder keeps the team's version. The detail shows the proposal's state with Send Proposal or Update Pull Request. Your Proposals lists them all, with Refresh; the More menu withdraws one.
 - **Inbox** — Drafts that models saved: Move to Library or Delete. Team updates: the diff, Allow for a new or changed command (it stays off until you click), Keep Previous Version, Copy to Personal and Done.
+- **Links** — `promptshelf://` links open the library window. See [Links](#links). Copy Link in the More menu copies a prompt's link.
 - **Prompts** — The More menu renames (title and ID; pins and includes follow), deletes and copies to Personal. Files to Fix lists files that can not be read, says what is wrong, and opens them in an editor.
 - **Agents** — In Settings → Agents: install the `shelf` command and the Claude Code skill, and add `shelf mcp` to Claude Desktop. The Claude Desktop config keeps its other entries, and the old file is saved as `claude_desktop_config.json.bak`.
 - **Settings** — The panel shortcut and the folder for `branch` and command blanks are in `desktop.toml` next to `config.toml`.
 
 Closing a window hides it. The app keeps running in the tray; quit it from the tray menu or with ⌘Q.
+
+## Links
+
+Every link opens the library window and brings it to the front.
+
+| Link                                | What it does                                            |
+| ----------------------------------- | ------------------------------------------------------- |
+| `promptshelf://open/<library>/<id>` | Selects the prompt.                                     |
+| `promptshelf://fill/<library>/<id>` | Selects the prompt and opens the Send preview, like ⌘↩. |
+| `promptshelf://search?q=<text>`     | Shows All Prompts with that search.                     |
+| `promptshelf://new?title=<text>`    | Opens the New prompt sheet. `title` is optional.        |
+| `promptshelf://`                    | Only opens the window.                                  |
+
+### Rules for links
+
+Any web page can open a link, so the app treats every link as untrusted.
+
+- **Checks** — Library names and IDs must follow the ID rules: `a-z`, `0-9` and single hyphens. A link is at most 2048 bytes, and a search or title at most 200 characters.
+- **No writes** — A link never writes a file, changes the config or syncs. Only the button you click does.
+- **No commands** — A prompt that a link opens runs no shell commands (`from: "git …"`), also in a trusted library. Those blanks wait, and Run Commands runs them. The clipboard and the other named sources still fill.
+- **Open sheets stay** — While a sheet or the editor is open, a link only shows a message.
+- **Other links** — A bad link, a missing prompt or another route (`import` is kept for sharing) shows a message such as "PromptShelf can't open this link: no prompt personal/foo". Nothing else happens.
+
+On Windows and Linux, a link sent to a running app goes to that app; it does not start a second copy. The installers register the scheme. An AppImage registers it when it starts. A development build (`vp run tauri dev`) does not register it.
+
+The app writes each link and what it did to stderr, for example `PromptShelf: link handled: selected personal/welcome`. Search and title text are not written.
+
+To try links in the browser mock, add `#link-open`, `#link-fill`, `#link-search`, `#link-new`, `#link-missing` or `#link-bad` to the URL. Or run `mockLink({ route: "fill", library: "personal", id: "strict-pr-review" })` in the browser console.
 
 ## The `shelf` command
 
@@ -56,6 +85,7 @@ To try the app without your own libraries, set `PROMPTSHELF_CONFIG_DIR` and `PRO
 | `src-tauri/src/agents.rs`                  | The skill, the `shelf` link and Claude Desktop                   |
 | `src-tauri/src/commands/`                  | The Tauri commands                                               |
 | `src-tauri/src/windows.rs`, `menu.rs`      | Windows, the menu bar, the tray icon                             |
+| `src-tauri/src/links.rs`                   | The `promptshelf://` link parser                                 |
 | `src/lib/`                                 | Typed calls, footnote numbering, the fill state, shortcuts       |
 | `src/components/`                          | The sidebar, list, detail, sentence and sheets                   |
 | `src/library`, `src/panel`, `src/settings` | One page per window                                              |
@@ -67,4 +97,4 @@ The serif is not final. To try another one, put its folder next to `src/fonts/so
 
 ## Licences
 
-The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), called from Rust only. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them.
+The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), and links use `tauri-plugin-deep-link` (Apache-2.0 or MIT). Both are called from Rust only. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them. It also allows `tiny-keccak` (CC0-1.0, public domain), which the deep-link plugin uses at build time on Linux.
