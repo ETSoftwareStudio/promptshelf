@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- PromptShelf: three prompts on a shelf. Colours from the palette:
+       accent oklch(47% 0.15 255), ground oklch(99.4% 0.002 265),
+       rose oklch(76% 0.13 355), green oklch(76% 0.12 158). -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#0859ac"/>
+  <rect x="120" y="148" width="72" height="212" rx="12" fill="#fcfdfe"/>
+  <rect x="204" y="188" width="72" height="172" rx="12" fill="#f18db5"/>
+  <rect x="296" y="136" width="72" height="228" rx="12" fill="#68c894" transform="rotate(10 296 364)"/>
+  <rect x="138" y="186" width="36" height="10" rx="5" fill="#0859ac"/>
+  <rect x="138" y="206" width="36" height="10" rx="5" fill="#0859ac"/>
+  <rect x="222" y="222" width="36" height="10" rx="5" fill="#ae316e"/>
+  <rect x="96" y="360" width="320" height="28" rx="10" fill="#fcfdfe"/>
+</svg>
