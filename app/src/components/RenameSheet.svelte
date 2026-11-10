@@ -1,6 +1,7 @@
 <!-- Rename a prompt: its title, and its ID if you want. A new ID moves the
      file and updates pins and includes. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import Icon from "./Icon.svelte";
 
   let {
@@ -33,9 +34,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<form
-  class="sheet"
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<form transition:sheet|global class="sheet"
   aria-label="Rename {oldTitle}"
   onsubmit={(e) => (e.preventDefault(), onrename(title, id))}
 >

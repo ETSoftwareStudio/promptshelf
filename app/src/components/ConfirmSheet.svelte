@@ -1,5 +1,6 @@
 <!-- Asks before an action that is hard to undo. Cancel has the focus. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   let {
     title,
     message,
@@ -26,8 +27,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && oncancel()} />
 
-<div class="dim" role="presentation" onclick={oncancel}></div>
-<div class="sheet" role="alertdialog" aria-modal="true" aria-label={title}>
+<div class="dim" transition:dim|global role="presentation" onclick={oncancel}></div>
+<div transition:sheet|global class="sheet" role="alertdialog" aria-modal="true" aria-label={title}>
   <h3>{title}</h3>
   <p class="fine">{message}</p>
   <div class="sfoot">

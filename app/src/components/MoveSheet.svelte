@@ -1,6 +1,7 @@
 <!-- Keep a draft: move it from the Inbox into a library as a prompt. A team
      library gets it as a proposal. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { libraryLabel } from "../lib/format";
   import type { Kind, LibraryInfo } from "../lib/types";
   import Icon from "./Icon.svelte";
@@ -31,8 +32,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<form class="sheet" aria-label="Keep {title}" onsubmit={(e) => (e.preventDefault(), onmove(library, kind))}>
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<form transition:sheet|global class="sheet" aria-label="Keep {title}" onsubmit={(e) => (e.preventDefault(), onmove(library, kind))}>
   <h3>Keep “{title}”</h3>
   <div class="sub">Moves the draft out of the Inbox and into a library.</div>
   <div class="field-row">

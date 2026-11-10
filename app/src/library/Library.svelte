@@ -1,6 +1,7 @@
 <!-- The library window: sidebar | list | detail. The Inbox, proposals and
      files to fix have their own lists. -->
 <script lang="ts">
+  import { rise } from "../lib/motion";
   import { onMount } from "svelte";
   import AddLibrarySheet from "../components/AddLibrarySheet.svelte";
   import ConflictSheet from "../components/ConflictSheet.svelte";
@@ -507,7 +508,7 @@
   />
 {/if}
 
-{#if toast.text}<div class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
+{#if toast.text}<div transition:rise|global class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
 
 <style>
   .lib {

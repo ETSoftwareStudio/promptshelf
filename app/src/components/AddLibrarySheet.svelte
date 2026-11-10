@@ -1,5 +1,6 @@
 <!-- Add a library: a git repo to clone, or a folder on this computer. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { api, errorText } from "../lib/api";
   import type { Writes } from "../lib/types";
   import Icon from "./Icon.svelte";
@@ -76,8 +77,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<form class="sheet" aria-label="Add a library" onsubmit={submit}>
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<form transition:sheet|global class="sheet" aria-label="Add a library" onsubmit={submit}>
   <h3>Add a library</h3>
   <div class="sub">A team's git repo, or a folder of prompts on this computer.</div>
   <div class="seg" role="radiogroup" aria-label="Where the library comes from">

@@ -1,6 +1,7 @@
 <!-- Settings: the panel shortcut and the folder resolvers run in (General),
      the libraries and their remotes (Libraries), and agents (Agents). -->
 <script lang="ts">
+  import { rise } from "../lib/motion";
   import { onMount } from "svelte";
   import Icon from "../components/Icon.svelte";
   import { api, errorText, onEvent } from "../lib/api";
@@ -142,5 +143,5 @@
   </div>
 </div>
 
-{#if toast.text}<div class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
+{#if toast.text}<div transition:rise|global class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
 

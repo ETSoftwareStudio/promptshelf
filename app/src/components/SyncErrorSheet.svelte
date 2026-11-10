@@ -1,5 +1,6 @@
 <!-- The last sync of a library failed: what git said, in plain words first. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { openLink } from "../lib/api";
   import { libraryLabel } from "../lib/format";
   import type { LastSync } from "../lib/types";
@@ -22,8 +23,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && oncancel()} />
 
-<div class="dim" role="presentation" onclick={oncancel}></div>
-<div class="sheet" role="alertdialog" aria-modal="true" aria-label="The sync failed">
+<div class="dim" transition:dim|global role="presentation" onclick={oncancel}></div>
+<div transition:sheet|global class="sheet" role="alertdialog" aria-modal="true" aria-label="The sync failed">
   <h3>{libraryLabel(library)} did not sync</h3>
   <div class="sub">Nothing was lost. Your prompts stay as they are on this computer.</div>
   <div class="banner err">

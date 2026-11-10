@@ -1,5 +1,6 @@
 <!-- The preview before Send: the message exactly as it will arrive. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { modKey } from "../lib/hotkey";
 
   let {
@@ -45,8 +46,8 @@
 
 <svelte:window {onkeydown} />
 
-<div class="dim" role="presentation" onclick={oncancel}></div>
-<div class="sheet" role="dialog" aria-modal="true" aria-label="Send {title}">
+<div class="dim" transition:dim|global role="presentation" onclick={oncancel}></div>
+<div transition:sheet|global class="sheet" role="dialog" aria-modal="true" aria-label="Send {title}">
   <h3>Send “{title}”</h3>
   <div class="sub">
     {paste ? "Copies the prompt, then pastes it into the app you came from." : "Copies the prompt. Paste it into any chat."}

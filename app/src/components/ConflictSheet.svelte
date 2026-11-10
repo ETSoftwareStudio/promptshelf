@@ -1,6 +1,7 @@
 <!-- A sync found files edited here and on the remote. The sync stopped and
      this computer's version stays in use. The person picks what to keep. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { api, errorText } from "../lib/api";
   import { libraryLabel } from "../lib/format";
   import type { Resolution, SyncReport } from "../lib/types";
@@ -57,8 +58,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<div class="sheet" role="dialog" aria-modal="true" aria-label="Sync needs a look">
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<div transition:sheet|global class="sheet" role="dialog" aria-modal="true" aria-label="Sync needs a look">
   <h3>{libraryLabel(library)}: edited here and on the remote</h3>
   <div class="sub">
     The sync stopped before it changed anything. This computer's version stays in use until you choose.

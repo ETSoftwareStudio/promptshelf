@@ -1,5 +1,9 @@
 <!-- The sidebar: pins (⌘1 to ⌘9), prompts, kinds, libraries and sync. -->
 <script lang="ts">
+  import { flip } from "svelte/animate";
+  import { cubicOut } from "svelte/easing";
+  import { slide } from "svelte/transition";
+  import { BASE, dur, moveParams, row } from "../lib/motion";
   import { KINDS, libraryLabel } from "../lib/format";
   import { modKey } from "../lib/hotkey";
   import type { Overview } from "../lib/types";
@@ -42,9 +46,12 @@
 <aside class="side">
   <div class="drag" data-tauri-drag-region></div>
   {#if overview.pins.length}
+    <div class="pins" transition:slide={{ duration: dur(BASE), easing: cubicOut }}>
     <div class="sh first">Pinned</div>
     {#each overview.pins as pin (pin.fullId)}
       <button
+        animate:flip={moveParams()}
+        transition:row
         class="si"
         class:on={pinned === pin.fullId}
         class:gone={!pin.exists}
@@ -56,6 +63,7 @@
         <span class="n kbd">{modKey(String(pin.position))}</span>
       </button>
     {/each}
+    </div>
   {/if}
 
   <div class="sh" class:first={!overview.pins.length}>Prompts</div>
@@ -158,6 +166,9 @@
   }
   .sh.first {
     padding-top: 2px;
+  }
+  .sh {
+    transition: padding-top 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .si {
     display: flex;

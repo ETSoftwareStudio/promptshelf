@@ -2,6 +2,7 @@
      create a private GitHub repo with gh. Nothing is created until the person
      clicks Create. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { api, errorText, openLink } from "../lib/api";
   import type { Environment, SyncReport } from "../lib/types";
   import Icon from "./Icon.svelte";
@@ -42,8 +43,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<div class="sheet" role="dialog" aria-modal="true" aria-label="Connect {library} to a remote">
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<div transition:sheet|global class="sheet" role="dialog" aria-modal="true" aria-label="Connect {library} to a remote">
   <h3>Connect to a remote</h3>
   <div class="sub">Sync then keeps this library the same on every computer.</div>
 

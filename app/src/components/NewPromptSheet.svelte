@@ -1,5 +1,6 @@
 <!-- A new prompt: a title, a kind and a library. The file opens in the editor. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { libraryLabel } from "../lib/format";
   import type { Kind, LibraryInfo } from "../lib/types";
 
@@ -32,8 +33,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && oncancel()} />
 
-<div class="dim" role="presentation" onclick={oncancel}></div>
-<form class="sheet" aria-label="New prompt" onsubmit={submit}>
+<div class="dim" transition:dim|global role="presentation" onclick={oncancel}></div>
+<form transition:sheet|global class="sheet" aria-label="New prompt" onsubmit={submit}>
   <h3>New prompt</h3>
   <div class="sub">A Markdown file. It opens in the editor.</div>
   <label class="f">

@@ -10,6 +10,7 @@
 </script>
 
 <script lang="ts">
+  import { pop } from "../lib/motion";
   import Icon from "./Icon.svelte";
 
   let { items, label = "More" }: { items: MenuItem[]; label?: string } = $props();
@@ -58,7 +59,7 @@
     <Icon name="dots" />
   </button>
   {#if open}
-    <div class="menu" role="menu" tabindex="-1" bind:this={box} {onkeydown}>
+    <div transition:pop class="menu" role="menu" tabindex="-1" bind:this={box} {onkeydown}>
       {#each items as item (item.label)}
         {#if item.rule}<hr />{/if}
         <button role="menuitem" class:danger={item.danger} onclick={() => pick(item)}>

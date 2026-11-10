@@ -1,6 +1,7 @@
 <!-- The quick panel behind the tray icon and the shortcut: pins first, then
      search, a quick fill, and Copy or Paste. -->
 <script lang="ts">
+  import { rise } from "../lib/motion";
   import { onMount, tick } from "svelte";
   import FilledPrompt from "../components/FilledPrompt.svelte";
   import Icon from "../components/Icon.svelte";
@@ -263,5 +264,5 @@
   {/if}
 </div>
 
-{#if toast.text}<div class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
+{#if toast.text}<div transition:rise|global class="toast" class:bad={toast.bad} role="status">{toast.text}</div>{/if}
 

@@ -1,6 +1,7 @@
 <!-- Send a proposal: the first time it opens a pull request, later it updates
      the same one. -->
 <script lang="ts">
+  import { dim, sheet } from "../lib/motion";
   import { onMount } from "svelte";
   import { api, errorText } from "../lib/api";
   import { libraryLabel } from "../lib/format";
@@ -46,8 +47,8 @@
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && !busy && oncancel()} />
 
-<div class="dim" role="presentation" onclick={() => !busy && oncancel()}></div>
-<form class="sheet" aria-label="Propose {proposal.title}" onsubmit={send}>
+<div class="dim" transition:dim|global role="presentation" onclick={() => !busy && oncancel()}></div>
+<form transition:sheet|global class="sheet" aria-label="Propose {proposal.title}" onsubmit={send}>
   <h3>{update ? "Update" : "Propose"} “{proposal.title}”</h3>
   <div class="sub">
     {libraryLabel(proposal.library)} · branch <code>{proposal.branch}</code>
