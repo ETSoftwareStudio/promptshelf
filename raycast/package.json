@@ -15,6 +15,13 @@
   ],
   "commands": [
     {
+      "name": "search-prompts",
+      "title": "Search Prompts",
+      "subtitle": "PromptShelf",
+      "description": "Search your prompts, pins first. Fill a prompt and paste it into the front app.",
+      "mode": "view"
+    },
+    {
       "name": "fill",
       "title": "Fill Prompt",
       "subtitle": "PromptShelf",
