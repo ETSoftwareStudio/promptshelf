@@ -54,8 +54,11 @@ fn conflict() -> (tempfile::TempDir, std::path::PathBuf, std::path::PathBuf) {
     (dir, here, other)
 }
 
+/// Reads a file with LF line endings: git on Windows checks files out with CRLF.
 fn read(root: &Path, rel: &str) -> String {
-    std::fs::read_to_string(root.join(rel)).unwrap()
+    std::fs::read_to_string(root.join(rel))
+        .unwrap()
+        .replace("\r\n", "\n")
 }
 
 #[test]
