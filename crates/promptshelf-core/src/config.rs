@@ -88,7 +88,7 @@ impl Config {
             return PathBuf::from(dir);
         }
         if cfg!(windows) {
-            dirs::config_dir()
+            env_dir("APPDATA")
                 .unwrap_or_else(|| PathBuf::from("."))
                 .join("promptshelf")
         } else {
@@ -96,7 +96,7 @@ impl Config {
             std::env::var_os("XDG_CONFIG_HOME")
                 .map(PathBuf::from)
                 .filter(|p| p.is_absolute())
-                .or_else(|| dirs::home_dir().map(|h| h.join(".config")))
+                .or_else(|| home_dir().map(|h| h.join(".config")))
                 .unwrap_or_else(|| PathBuf::from("."))
                 .join("promptshelf")
         }
@@ -182,18 +182,46 @@ pub fn state_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os(STATE_DIR_ENV) {
         return PathBuf::from(dir);
     }
-    dirs::data_local_dir()
+    data_local_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("promptshelf")
+}
+
+fn env_dir(name: &str) -> Option<PathBuf> {
+    std::env::var_os(name)
+        .map(PathBuf::from)
+        .filter(|p| p.is_absolute())
+}
+
+/// The home folder: `HOME`, or `USERPROFILE` on Windows.
+pub fn home_dir() -> Option<PathBuf> {
+    if cfg!(windows) {
+        env_dir("USERPROFILE").or_else(|| env_dir("HOME"))
+    } else {
+        env_dir("HOME")
+    }
+}
+
+/// The folder for per-machine data: `%LOCALAPPDATA%` on Windows,
+/// `~/Library/Application Support` on macOS, `$XDG_DATA_HOME` or
+/// `~/.local/share` elsewhere.
+fn data_local_dir() -> Option<PathBuf> {
+    if cfg!(windows) {
+        env_dir("LOCALAPPDATA")
+    } else if cfg!(target_os = "macos") {
+        home_dir().map(|h| h.join("Library").join("Application Support"))
+    } else {
+        env_dir("XDG_DATA_HOME").or_else(|| home_dir().map(|h| h.join(".local").join("share")))
+    }
 }
 
 /// Expands a leading `~` or `~/` to the home folder.
 pub fn expand_tilde(path: &str) -> PathBuf {
     if path == "~" {
-        return dirs::home_dir().unwrap_or_else(|| PathBuf::from(path));
+        return home_dir().unwrap_or_else(|| PathBuf::from(path));
     }
     if let Some(rest) = path.strip_prefix("~/").or_else(|| path.strip_prefix("~\\")) {
-        if let Some(home) = dirs::home_dir() {
+        if let Some(home) = home_dir() {
             return home.join(rest);
         }
     }

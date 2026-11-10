@@ -203,7 +203,8 @@ pub(super) fn skill(ctx: &Ctx, cmd: SkillCommand) -> Result<u8> {
             let base = if project {
                 std::env::current_dir().map_err(|e| Error::Invalid(e.to_string()))?
             } else {
-                dirs::home_dir().ok_or_else(|| Error::Invalid("no home folder".into()))?
+                promptshelf_core::config::home_dir()
+                    .ok_or_else(|| Error::Invalid("no home folder".into()))?
             };
             let path: PathBuf = base
                 .join(".claude")

@@ -20,7 +20,6 @@ path = "src/bin/promptshelf.rs"
 [dependencies]
 promptshelf-core.workspace = true
 clap.workspace = true
-dirs.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
