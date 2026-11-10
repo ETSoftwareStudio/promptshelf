@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The release workflow starts CI on the release PR this way.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -72,3 +74,12 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks
       - name: Scan the whole history
         run: ./gitleaks git --redact --verbose --exit-code 1 .
+
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node --test "npm/promptshelf/test/*.test.js"
