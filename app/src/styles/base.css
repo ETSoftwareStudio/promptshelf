@@ -1,0 +1,238 @@
+/* Shared pieces for every window. Ported from the Margin prototype. */
+@import "./tokens.css";
+@import "./prompt.css";
+@import "./sheets.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font: 13px/1.4 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  color: var(--ink);
+  background: var(--ground);
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* macOS draws vibrancy behind a transparent window. */
+html.vibrant body {
+  background: transparent;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.i {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+.i.s {
+  width: 12px;
+  height: 12px;
+}
+
+.btn {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--btn);
+  color: var(--ink);
+  font: 500 12.5px var(--font-ui);
+  box-shadow:
+    inset 0 0 0 0.5px var(--edge),
+    0 1px 2px oklch(10% 0 0 / 0.06);
+  white-space: nowrap;
+  flex: none;
+}
+.btn:active:not(:disabled) {
+  filter: brightness(0.96);
+}
+.btn:disabled {
+  opacity: 0.5;
+}
+.btn.icon {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+}
+.btn.sm {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11.5px;
+  border-radius: 11px;
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 1px 2px oklch(10% 0 0 / 0.12);
+}
+.btn.pressed,
+.btn.on {
+  background: var(--side-sel);
+  color: var(--link);
+}
+
+.kbd {
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+.mono,
+code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.input {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 0;
+  background: var(--field);
+  box-shadow:
+    inset 0 0 0 0.5px var(--edge),
+    inset 0 1px 2px oklch(10% 0 0 / 0.06);
+  color: var(--ink);
+  font-size: 12.5px;
+  width: 100%;
+  min-width: 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+.input::placeholder {
+  color: var(--ink3);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--side);
+  color: var(--ink3);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.search input::placeholder {
+  color: var(--ink3);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 40px);
+  padding: 7px 12px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 12px;
+  box-shadow: 0 8px 24px -8px var(--shadow);
+  z-index: 20;
+}
+.toast.bad {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  box-shadow:
+    inset 0 0 0 0.5px var(--warn),
+    0 8px 24px -8px var(--shadow);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 28px;
+  height: 100%;
+}
+.empty .glyph {
+  width: 36px;
+  height: 36px;
+  color: var(--ink3);
+  stroke-width: 1.3;
+  margin-bottom: 10px;
+}
+.empty h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.empty p {
+  margin: 5px 0 14px;
+  font-size: 12.5px;
+  color: var(--ink2);
+  max-width: 40ch;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(50% 0.01 265 / 0.3);
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
