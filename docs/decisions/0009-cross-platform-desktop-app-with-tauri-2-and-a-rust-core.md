@@ -45,4 +45,7 @@ Tauri 2 for the desktop app on macOS, Windows and Linux. Rust for the core.
 - **Licences** — Tauri and ratatui use MIT or Apache-2.0, so [0007](0007-open-source-mit.md) holds. CI checks the licence of each crate and npm package.
 - **Closes** — The core language question. The desktop app links the core. External clients call `pl --json`.
 - **UI framework (2026-11-09, owner)** — Svelte 5, built with Vite+.
-- **Still open** — The bundled serif (Source Serif 4, Newsreader or Literata; the owner is comparing them). The Windows signing option.
+- **UI framework (2026-11-09)** — Svelte 5, built with Vite+.
+- **Serif (2026-11-10)** — Source Serif 4 (OFL), bundled, behind one CSS variable `--font-prompt`.
+- **MPL-2.0 inside Tauri (2026-11-10)** — Tauri 2 depends on five MPL-2.0 crates: `cssparser`, `cssparser-macros`, `dtoa-short`, `selectors` and `option-ext`. They are allowed by name for the desktop app only, in `app/src-tauri/deny.toml`. MPL-2.0 is file-level copyleft: the app stays MIT. The CLI and the core stay permissive-only.
+- **Still open** — The Windows signing option.
