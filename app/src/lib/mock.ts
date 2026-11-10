@@ -167,7 +167,7 @@ let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/paymen
 export async function call(cmd: string, a: Record<string, unknown>): Promise<unknown> {
   const id = a.id as string;
   const p = id ? find(id) : undefined;
-  const about = callAbout(cmd);
+  const about = callAbout(cmd, a);
   if (about !== undefined) return about;
   const more = await callMore(cmd, a);
   if (more !== undefined || NO_RESULT.has(cmd)) return more;

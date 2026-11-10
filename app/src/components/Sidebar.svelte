@@ -8,6 +8,7 @@
   import { modKey } from "../lib/hotkey";
   import type { Overview } from "../lib/types";
   import Icon from "./Icon.svelte";
+  import StarCard from "./StarCard.svelte";
 
   let {
     overview,
@@ -121,6 +122,8 @@
     </button>
   {/if}
 
+  <div class="bottom">
+    <StarCard />
   {#if problem && !syncing}
     <button class="sync bad" onclick={() => onsyncproblem?.(problem)} title="See what the sync found">
       <span class="dot bad"></span>
@@ -136,6 +139,7 @@
       {#if anyGit && !syncing}<Icon name="sync" small />{/if}
     </button>
   {/if}
+  </div>
 </aside>
 
 <style>
@@ -231,8 +235,10 @@
   .ld.bad {
     background: var(--warn);
   }
-  .sync {
+  .bottom {
     margin-top: auto;
+  }
+  .sync {
     padding: 8px 8px 0;
     border-top: 1px solid var(--rule);
     font-size: 11px;

@@ -1,12 +1,21 @@
-// The browser mock for Settings → About. The links are the real ones; the
-// version, OS and architecture are made up.
+// The browser mock for Settings → About and the star card. The links are the
+// real ones; the version, OS and architecture are made up. `#star` in the URL
+// shows the star card, for the UI walkthrough.
 
 import type { AboutView } from "./types";
 
 const REPO = "https://github.com/ETSoftwareStudio/promptshelf";
 
-export function callAbout(cmd: string): unknown {
+let starred = false;
+
+export function callAbout(cmd: string, a: Record<string, unknown>): unknown {
   switch (cmd) {
+    case "star_card":
+      return location.hash.includes("star") && !starred;
+    case "answer_star":
+      starred = true;
+      if (a.answer === "star") window.open(REPO, "_blank", "noopener");
+      return null;
     case "about":
       return {
         version: "0.1.0",

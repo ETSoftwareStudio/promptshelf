@@ -103,6 +103,9 @@ export const api = {
     call<void>("open_window", { name, tab: tab ?? null }),
   hidePanel: () => call<void>("hide_panel"),
   about: () => call<AboutView>("about"),
+  /** True when the sidebar shows the one-time star card. */
+  starCard: () => call<boolean>("star_card"),
+  answerStar: (answer: "star" | "not-now" | "never") => call<void>("answer_star", { answer }),
 };
 
 /** Opens a web page in the system browser. */
