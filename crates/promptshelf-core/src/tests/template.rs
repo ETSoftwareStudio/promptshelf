@@ -88,3 +88,28 @@ fn detects_include_loops_and_missing_includes() {
     let e = render(&shelf, shelf.resolve("c").unwrap(), &BTreeMap::new()).unwrap_err();
     assert!(e.to_string().contains("does not exist"), "{e}");
 }
+
+#[test]
+fn pieces_mark_values_and_open_blanks() {
+    let (_d, shelf) = shelf_with(&[
+        ("templates/t.md", "A {{x}} B {{y}}.\n{{> empty}}end\n"),
+        ("snippets/empty.md", ""),
+    ]);
+    let mut values = BTreeMap::new();
+    values.insert("x".into(), Value::given("one"));
+    let pieces = pieces(&shelf, shelf.resolve("t").unwrap(), &values).unwrap();
+    assert_eq!(
+        pieces,
+        vec![
+            Piece::Text("A ".into()),
+            Piece::Value {
+                name: "x".into(),
+                value: Value::given("one")
+            },
+            Piece::Text(" B ".into()),
+            Piece::Open { name: "y".into() },
+            Piece::Text(".\nend\n".into()),
+        ]
+    );
+    assert_eq!(to_text(&pieces), "A one B {{y}}.\nend\n");
+}

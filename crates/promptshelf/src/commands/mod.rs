@@ -6,6 +6,8 @@ mod save;
 mod setup;
 mod sync;
 
+use std::io::IsTerminal;
+
 use clap::CommandFactory;
 use promptshelf_core::{Config, Error, ListFilter, Result, Shelf, VarSpec};
 
@@ -24,6 +26,10 @@ pub fn dispatch(cli: Cli) -> u8 {
         caller: Caller::detect(cli.user_action),
     };
     let result = match cli.command {
+        // At a terminal, `shelf` alone opens the terminal app.
+        None if !ctx.json && !ctx.caller.agent && std::io::stderr().is_terminal() => {
+            crate::tui::run()
+        }
         None => {
             let _ = Cli::command().print_help();
             Ok(exit::OK)
