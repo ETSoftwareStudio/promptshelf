@@ -76,12 +76,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # While the repo is private, macOS jobs use the studio's own runner.
-          # Use macos-latest when the repo is public.
+          # The repo is public, so macOS jobs use GitHub's runners, never the studio's own Mac.
           - target: aarch64-apple-darwin
-            runs-on: [self-hosted, macOS, ARM64]
+            runs-on: macos-latest
           - target: x86_64-apple-darwin
-            runs-on: [self-hosted, macOS, ARM64]
+            runs-on: macos-latest
           - target: x86_64-unknown-linux-musl
             runs-on: ubuntu-latest
           - target: x86_64-pc-windows-msvc

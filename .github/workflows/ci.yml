@@ -38,10 +38,9 @@ jobs:
             runs-on: ubuntu-latest
           - os: windows
             runs-on: windows-latest
-          # While the repo is private, macOS jobs use the studio's own runner.
-          # Use macos-latest when the repo is public.
+          # The repo is public, so macOS jobs use GitHub's runners, never the studio's own Mac.
           - os: macos
-            runs-on: [self-hosted, macOS, ARM64]
+            runs-on: macos-latest
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.runs-on }}
     steps:
