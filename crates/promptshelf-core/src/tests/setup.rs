@@ -208,3 +208,26 @@ fn connect_to_a_remote_with_content_pulls_first() {
     git(&other, &["pull", "-q"]);
     assert!(other.join("templates/a.md").exists(), "pushed ours");
 }
+
+#[test]
+fn a_new_library_gets_a_welcome_prompt_that_parses() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = personal_config(dir.path());
+    let mut diagnostics = Vec::new();
+    let lib = Library::scan(config.personal().unwrap().clone(), &mut diagnostics);
+    let welcome = lib.get("welcome").expect("welcome prompt");
+    assert_eq!(welcome.title, "Welcome to PromptShelf");
+    assert_eq!(welcome.vars.len(), 4);
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+}
+
+#[test]
+fn an_existing_library_gets_no_welcome_prompt() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("mine");
+    std::fs::create_dir_all(root.join("snippets")).unwrap();
+    std::fs::write(root.join("snippets/a.md"), "Hello\n").unwrap();
+    let mut config = Config::default();
+    init_personal(&mut config, &root.display().to_string(), "shelf").unwrap();
+    assert!(!root.join("templates/welcome.md").exists());
+}

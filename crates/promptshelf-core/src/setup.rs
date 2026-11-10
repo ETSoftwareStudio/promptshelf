@@ -37,6 +37,10 @@ pub fn init_personal(config: &mut Config, path: &str, merge_driver: &str) -> Res
     let personal = config.personal().expect("personal library exists");
     let root = personal.root();
     write::init_library(&root)?;
+    if created && !has_prompts(&root) {
+        let path = root.join("templates").join("welcome.md");
+        crate::fsutil::create_new(&path, WELCOME.as_bytes())?;
+    }
     // Personal is a git repo from the start, so sync can work later.
     if !git::is_repo(&root) && git::run(&root, &["init", "-q", "-b", "main"]).is_ok() {
         crate::sync::setup_merge_driver(&root, merge_driver)?;
@@ -45,6 +49,21 @@ pub fn init_personal(config: &mut Config, path: &str, merge_driver: &str) -> Res
         created,
         name: personal.name.clone(),
         root,
+    })
+}
+
+/// The first prompt in a new Personal library. It shows blanks, choices and
+/// sources, and says what to do next. People delete it when they are done.
+const WELCOME: &str = include_str!("welcome.md");
+
+/// True when a library folder already has a prompt file.
+fn has_prompts(root: &std::path::Path) -> bool {
+    crate::prompt::FOLDERS.iter().any(|(folder, _)| {
+        std::fs::read_dir(root.join(folder)).is_ok_and(|entries| {
+            entries
+                .flatten()
+                .any(|e| e.path().extension().is_some_and(|x| x == "md"))
+        })
     })
 }
 
