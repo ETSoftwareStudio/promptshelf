@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 use crate::prompt::{Prompt, VarSpec};
@@ -68,7 +68,7 @@ pub fn is_var_name(s: &str) -> bool {
 }
 
 /// Where a value came from.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Source {
     /// Given on the command line or by the caller.
@@ -82,8 +82,9 @@ pub enum Source {
     Conversation,
 }
 
-/// A value with its source, for the footnotes.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+/// A value with its source, for the footnotes. A UI can send it back to
+/// [`render`] without running the resolvers again.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Value {
     pub value: String,
     pub source: Source,
