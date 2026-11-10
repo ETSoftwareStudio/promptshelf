@@ -5,6 +5,7 @@ mod cli;
 mod commands;
 mod output;
 mod skill;
+mod tui;
 
 use std::process::ExitCode;
 
