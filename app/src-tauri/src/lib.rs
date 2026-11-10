@@ -2,6 +2,7 @@
 //! icon and a global shortcut, and Settings. The Rust side links
 //! `promptshelf-core`; the UI is Svelte in `app/src`.
 
+pub mod agents;
 mod commands;
 mod menu;
 mod paste;
@@ -43,6 +44,7 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             windows::show_library(app);
         }))
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
@@ -93,6 +95,10 @@ pub fn run() {
             commands::set_settings,
             commands::open_window,
             commands::hide_panel,
+            commands::agents_status,
+            commands::install_skill,
+            commands::install_command,
+            commands::add_to_claude_desktop,
             commands::delete_prompt,
             commands::rename_prompt,
             commands::move_prompt,
