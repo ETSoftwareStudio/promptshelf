@@ -216,6 +216,40 @@ pub fn clipboard() -> Option<String> {
     None
 }
 
+/// Copies text to the clipboard with the system's own tool.
+pub fn set_clipboard(text: &str) -> Result<(), String> {
+    use std::io::Write;
+    let tries: &[&[&str]] = if cfg!(target_os = "macos") {
+        &[&["pbcopy"]]
+    } else if cfg!(windows) {
+        &[&["clip"]]
+    } else {
+        &[
+            &["wl-copy"],
+            &["xclip", "-selection", "clipboard"],
+            &["xsel", "--clipboard", "--input"],
+        ]
+    };
+    for argv in tries {
+        let Ok(mut child) = Command::new(argv[0])
+            .args(&argv[1..])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+        else {
+            continue;
+        };
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(text.as_bytes());
+        }
+        if child.wait().is_ok_and(|s| s.success()) {
+            return Ok(());
+        }
+    }
+    Err("no clipboard tool found (pbcopy, clip, wl-copy, xclip or xsel)".into())
+}
+
 #[cfg(test)]
 #[path = "tests/resolve.rs"]
 mod tests;
