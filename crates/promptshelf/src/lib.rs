@@ -3,6 +3,7 @@
 mod caller;
 mod cli;
 mod commands;
+mod mcp;
 mod output;
 mod skill;
 mod tui;
