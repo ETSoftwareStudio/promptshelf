@@ -7,10 +7,13 @@
   import { api, errorText, openLink } from "../lib/api";
   import type { Toast } from "../lib/toast.svelte";
   import type { AboutView } from "../lib/types";
+  import ThirdPartyList from "./ThirdPartyList.svelte";
 
   let { toast }: { toast: Toast } = $props();
 
   let view = $state<AboutView | null>(null);
+  /** Shows the third-party list in place of the pane. */
+  let licences = $state(false);
 
   async function load() {
     try {
@@ -23,7 +26,7 @@
 
   const OS: Record<string, string> = { macos: "macOS", windows: "Windows", linux: "Linux" };
 
-  type Row = { icon: IconName; label: string; sub: string; url: string; val?: string };
+  type Row = { icon: IconName; label: string; sub: string; url?: string; val?: string };
   const rows = $derived<Row[]>(
     view
       ? [
@@ -36,13 +39,16 @@
             url: view.links.issue,
           },
           { icon: "text", label: "Licence", sub: "Free to use, change and share.", url: view.links.licence, val: "MIT" },
+          { icon: "books", label: "Third-party Licences", sub: "The open-source code PromptShelf ships." },
           { icon: "star", label: "Star on GitHub", sub: "A star helps other people find PromptShelf.", url: view.links.repo },
         ]
       : [],
   );
 </script>
 
-{#if view}
+{#if licences}
+  <ThirdPartyList onback={() => (licences = false)} />
+{:else if view}
   <div class="hero">
     <picture>
       <source srcset={dark} media="(prefers-color-scheme: dark)" />
@@ -57,10 +63,10 @@
 
   <div class="grp">
     {#each rows as row (row.label)}
-      <button class="fr lk" onclick={() => openLink(row.url)}>
+      <button class="fr lk" onclick={() => (row.url ? openLink(row.url) : (licences = true))}>
         <Icon name={row.icon} class="ico" />
         <span class="stack"><span>{row.label}</span><span class="sub2">{row.sub}</span></span>
-        <span class="val">{#if row.val}{row.val}{/if}<Icon name="out" small /></span>
+        <span class="val">{#if row.val}{row.val}{/if}<Icon name={row.url ? "out" : "chevr"} small /></span>
       </button>
     {/each}
   </div>
