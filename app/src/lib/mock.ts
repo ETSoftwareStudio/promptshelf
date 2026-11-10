@@ -2,6 +2,7 @@
 // looked at without Tauri. Only dev builds load it. Every name is made up.
 
 import { PINS, PROMPTS, RESOLVED, type MockPrompt } from "./mock-data";
+import { callAbout } from "./mock-about";
 import { callMore } from "./mock-more";
 import { state, sync } from "./mock-state";
 import type {
@@ -166,6 +167,8 @@ let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/paymen
 export async function call(cmd: string, a: Record<string, unknown>): Promise<unknown> {
   const id = a.id as string;
   const p = id ? find(id) : undefined;
+  const about = callAbout(cmd);
+  if (about !== undefined) return about;
   const more = await callMore(cmd, a);
   if (more !== undefined || NO_RESULT.has(cmd)) return more;
   if (id && !p && cmd !== "unpin_prompt") throw new Error(`no prompt with the ID "${id}"`);

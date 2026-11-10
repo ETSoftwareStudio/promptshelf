@@ -17,6 +17,7 @@ The desktop app for macOS, Windows and Linux: a library window, a quick panel be
 - **Inbox** — Drafts that models saved: Move to Library or Delete. Team updates: the diff, Allow for a new or changed command (it stays off until you click), Keep Previous Version, Copy to Personal and Done.
 - **Prompts** — The More menu renames (title and ID; pins and includes follow), deletes and copies to Personal. Files to Fix lists files that can not be read, says what is wrong, and opens them in an editor.
 - **Agents** — In Settings → Agents: install the `shelf` command and the Claude Code skill, and add `shelf mcp` to Claude Desktop. The Claude Desktop config keeps its other entries, and the old file is saved as `claude_desktop_config.json.bak`.
+- **About** — Settings → About shows the version and opens the GitHub repo, the release notes, a new issue, the licence and the third-party licences. About PromptShelf in the app menu opens it; the Help menu also opens the repo and a new issue.
 - **Settings** — The panel shortcut and the folder for `branch` and command blanks are in `desktop.toml` next to `config.toml`.
 
 Closing a window hides it. The app keeps running in the tray; quit it from the tray menu or with ⌘Q.
