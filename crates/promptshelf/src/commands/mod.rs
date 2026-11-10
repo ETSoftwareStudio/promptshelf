@@ -64,6 +64,7 @@ pub fn dispatch(cli: Cli) -> u8 {
         Some(Command::Inbox(a)) => inbox::inbox(&ctx, a),
         Some(Command::KeepPrevious(a)) => inbox::keep_previous(&ctx, a),
         Some(Command::Copy(a)) => inbox::copy(&ctx, a),
+        Some(Command::Mcp) => crate::mcp::run(),
         Some(Command::MergePins { base, ours, theirs }) => sync::merge_pins(&base, &ours, &theirs),
     };
     match result {

@@ -72,6 +72,8 @@ pub enum Command {
     KeepPrevious(IdArgs),
     /// Copy a prompt into Personal, to change it for yourself.
     Copy(IdArgs),
+    /// Serve the Model Context Protocol on stdio, for apps with no shell.
+    Mcp,
     /// Git merge driver for the pin list (set up by `shelf sync`).
     #[command(hide = true)]
     MergePins {
