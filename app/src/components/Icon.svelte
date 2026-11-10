@@ -23,6 +23,12 @@
     sync: '<path d="M19 12a7 7 0 01-12.2 4.7M5 12a7 7 0 0112.2-4.7"/><path d="M17.5 3.5v4h-4M6.5 20.5v-4h4"/>',
     copy: '<rect x="8" y="8" width="11.5" height="11.5" rx="2"/><path d="M5 15.5V6a1.5 1.5 0 011.5-1.5H16"/>',
     close: '<path d="M7 7l10 10M17 7L7 17"/>',
+    dots: '<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>',
+    branch:
+      '<circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="8" r="2"/><path d="M7 7.5v9M17 10c0 4-10 2.5-10 6.5"/>',
+    terminal: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7.5 10l3 2.5-3 2.5M12.5 15.5h4"/>',
+    link: '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
+    plug: '<path d="M9 3.5v4M15 3.5v4M7 7.5h10v3a5 5 0 01-10 0z"/><path d="M12 15.5v5"/>',
   } as const;
   export type IconName = keyof typeof PATHS;
 </script>

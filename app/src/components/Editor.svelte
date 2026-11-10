@@ -16,7 +16,7 @@
     error?: string | null;
     saving?: boolean;
     onsave: () => void;
-    oncancel: () => void;
+    oncancel?: () => void;
   } = $props();
 
   let area = $state<HTMLTextAreaElement>();
@@ -28,7 +28,7 @@
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
       onsave();
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && oncancel) {
       e.preventDefault();
       oncancel();
     } else if (e.key === "Tab" && !e.shiftKey) {
@@ -53,7 +53,7 @@
   ></textarea>
   <div class="foot">
     <span class="path mono" title={path}>{path}</span>
-    <button class="btn" onclick={oncancel}>Cancel</button>
+    {#if oncancel}<button class="btn" onclick={oncancel}>Cancel</button>{/if}
     <button class="btn primary" onclick={onsave} disabled={saving}
       >{saving ? "Saving…" : "Save"} <span class="k">{modKey("S")}</span></button
     >
