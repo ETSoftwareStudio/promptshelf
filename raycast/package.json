@@ -13,7 +13,23 @@
   "platforms": [
     "macOS"
   ],
-  "commands": [],
+  "commands": [
+    {
+      "name": "fill",
+      "title": "Fill Prompt",
+      "subtitle": "PromptShelf",
+      "description": "Fill one prompt by its ID and paste it. The Fill form opens only when a blank needs you. Quicklinks use this command.",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "id",
+          "placeholder": "Prompt ID",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
   "preferences": [
     {
       "name": "shelfPath",
