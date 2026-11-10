@@ -2,16 +2,40 @@
 
 A local-first library to save, template, reuse and share prompts. Prompts are Markdown files in a folder you own, synced with git. The `shelf` command finds and fills them, for you and for coding agents.
 
-**Status:** early development. The CLI and the terminal app work; the desktop app is in progress.
+**Status:** not released yet. The CLI, the terminal app, the desktop app, the MCP server and the Raycast extension all work from source.
 
-## Planned
+## What it has
 - **`shelf` CLI** — Search, show and fill prompts. Every command has `--json` output for agents.
 - **Terminal app** — Run `shelf` with no arguments.
-- **Desktop app** — macOS, Windows and Linux, with a tray panel for quick access. Everything works from the app: set up, add team libraries, sync, propose changes and connect agents, with no terminal.
+- **Desktop app** — macOS, Windows and Linux, with a tray panel and a global shortcut. Everything works from the app: set up, add team libraries, sync, propose changes and connect agents, with no terminal.
+- **Agents** — A Claude Code skill, and `shelf mcp` for apps with no shell.
 - **Sync and sharing** — Plain git. No server, no account, no telemetry.
 
+## Set up with an AI agent
+Copy one of these prompts into your coding agent (Claude Code, Codex, Cursor and others). The agent follows the linked steps. It asks you before the steps that need you, such as creating your library.
+
+Install PromptShelf:
+```text
+Install PromptShelf for me. Follow the steps in
+https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/install.md
+```
+
+Connect it to an app over MCP (Claude Desktop, Cursor, VS Code and others):
+```text
+Connect PromptShelf to my apps over MCP. Follow the steps in
+https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/mcp.md
+```
+
+Agents that read [`llms.txt`](llms.txt) get a short summary and links to both.
+
 ## Install
-Not released yet. When it is:
+Not released yet. Until then, build it from source:
+
+```sh
+cargo install --locked --git https://github.com/ETSoftwareStudio/promptshelf promptshelf
+```
+
+After the first release:
 
 <!-- x-release-please-start-version -->
 ```sh
@@ -42,6 +66,8 @@ Every command takes `--json`. Agents with no terminal can read, fill and save dr
 ```
 
 It runs only while the app runs: no daemon and no network port.
+
+Use the full path to `shelf` (`command -v shelf`): apps started from the Dock often do not see your terminal's PATH. [docs/agents/mcp.md](docs/agents/mcp.md) has the settings for Claude Code, Cursor, VS Code and Codex.
 
 ## Build
 ```sh

@@ -1,0 +1,35 @@
+# PromptShelf
+
+> A local-first library to save, template, reuse and share prompts. Prompts are Markdown files with YAML frontmatter, in folders the person owns, synced with plain git. The `shelf` command finds and fills them for people and for AI agents. No server, no account, no telemetry. MIT licence.
+
+Key facts for agents:
+
+- Always pass `--json` to `shelf`. Prompt IDs look like `personal/strict-pr-review`; a bare ID works when it is unique.
+- Agents can read, fill and save drafts to the Inbox. Other writes (creating a library, pinning, editing, syncing) need a person, and `shelf` exits with code 5 when an agent tries them. Ask the person to run those commands. Do not work around the refusal.
+- Never edit library files directly. Save new prompts with `shelf save`, which puts them in the person's Inbox.
+- Apps with no shell connect through `shelf mcp`, an MCP server on stdio.
+
+Main commands:
+
+- `shelf search <words> --json`: ranked matches with their blanks.
+- `shelf list --json [--lib <name>] [--kind template] [--tag <tag>]`: every prompt, with filters.
+- `shelf show <id> --json`: one prompt, its body and its blanks (`vars`).
+- `shelf fill <id> --json --var name=value`: exit code 0 means `text` is ready; exit code 3 means `missing` lists the open blanks. Fill them from the conversation, then run it again.
+- `shelf save --title "<title>" --json < file`: saves a draft to the Inbox.
+- `shelf skill print`: the full instructions for agents (the same text as the Claude Code skill).
+
+## Set up
+
+- [Install PromptShelf](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/install.md): step-by-step instructions for an agent to install `shelf`, create the library with the person, and learn the commands.
+- [Connect over MCP](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/mcp.md): step-by-step instructions for an agent to add `shelf mcp` to Claude Desktop, Claude Code, Cursor, VS Code, Codex or another MCP app.
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/README.md): what PromptShelf is, install, use and build.
+- [Design decisions](https://github.com/ETSoftwareStudio/promptshelf/tree/main/docs/decisions): why it works the way it does.
+
+## Optional
+
+- [Desktop app](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/app/README.md): the Tauri app for macOS, Windows and Linux.
+- [Raycast extension](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/raycast/README.md): search and fill prompts from Raycast.
+- [Releasing](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/RELEASING.md): how versions are built and published.
