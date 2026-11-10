@@ -45,14 +45,14 @@ pub fn save_file(shelf: &Shelf, full_id: &str, text: &str) -> Result<String> {
     let p = shelf.resolve(full_id)?;
     let folder_kind = folder_kind(shelf, p);
     let parsed = CorePrompt::parse(text, &p.path, &p.library, folder_kind)?;
-    if parsed.id != p.id {
-        if let Some(other) = shelf.library(&p.library)?.get(&parsed.id) {
-            return Err(Error::Invalid(format!(
-                "the ID \"{}\" is taken by {}",
-                parsed.id,
-                other.path.display()
-            )));
-        }
+    if parsed.id != p.id
+        && let Some(other) = shelf.library(&p.library)?.get(&parsed.id)
+    {
+        return Err(Error::Invalid(format!(
+            "the ID \"{}\" is taken by {}",
+            parsed.id,
+            other.path.display()
+        )));
     }
     promptshelf_core::fsutil::write_atomic(&p.path, text.as_bytes())?;
     Ok(parsed.full_id())
@@ -116,10 +116,10 @@ pub fn sync(shelf: &Shelf, library: Option<&str>, merge_driver: &str) -> Result<
         let is_personal = personal.as_deref() == Some(lib.name());
         reports.push(core_sync::sync(lib, is_personal, &opts));
     }
-    if let Some(name) = library {
-        if reports.is_empty() {
-            return Err(Error::UnknownLibrary(name.to_string()));
-        }
+    if let Some(name) = library
+        && reports.is_empty()
+    {
+        return Err(Error::UnknownLibrary(name.to_string()));
     }
     Ok(reports)
 }
