@@ -222,7 +222,8 @@ pub fn detail(shelf: &Shelf, pins: &Pins, usage: &UsageLog, full_id: &str) -> Re
         forked_from: p.forked_from.clone(),
         file,
         writes: writes_name(lib.config.writes),
-        proposal_info: None,
+        proposal_info: promptshelf_core::proposals::find(&p.library, &p.id)
+            .map(|x| crate::team::proposal_view(shelf, &x)),
         blocked,
     })
 }

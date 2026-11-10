@@ -12,7 +12,7 @@ use promptshelf_core::state::UsageLog;
 use promptshelf_core::template::Value;
 use promptshelf_core::{Config, Error, Shelf};
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::paste;
 use crate::service::{self, Detail, FillView, Overview, Query, Summary};
@@ -76,6 +76,13 @@ impl AppState {
 
 fn load_pins(shelf: &Shelf) -> Pins {
     pins::load(shelf).unwrap_or_default()
+}
+
+/// After a write: forgets the loaded shelf and tells every window with a
+/// "shelf-changed" event, so they read the files again.
+pub(crate) fn changed(app: &AppHandle, state: &AppState) {
+    state.invalidate();
+    let _ = app.emit("shelf-changed", ());
 }
 
 /// Runs blocking work (resolvers, git) off the main thread.
@@ -194,4 +201,6 @@ pub async fn send_prompt(
 }
 
 mod more;
+mod team;
 pub use more::*;
+pub use team::*;

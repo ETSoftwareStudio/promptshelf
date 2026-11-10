@@ -7,6 +7,7 @@ mod menu;
 mod paste;
 pub mod service;
 pub mod settings;
+pub mod team;
 pub mod views;
 mod windows;
 pub mod writes;
@@ -92,6 +93,15 @@ pub fn run() {
             commands::set_settings,
             commands::open_window,
             commands::hide_panel,
+            commands::list_proposals,
+            commands::proposal_text,
+            commands::propose,
+            commands::withdraw_proposal,
+            commands::get_inbox,
+            commands::update_diff,
+            commands::allow_commands,
+            commands::keep_previous,
+            commands::dismiss_update,
         ])
         .build(tauri::generate_context!())
         .expect("could not start PromptShelf");
