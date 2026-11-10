@@ -4,6 +4,7 @@
 
 pub mod agents;
 mod commands;
+pub mod links;
 pub mod manage;
 mod menu;
 mod paste;
