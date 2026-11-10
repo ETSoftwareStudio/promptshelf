@@ -1,12 +1,11 @@
-//! What the app's write commands do: pins, edits, new prompts, sync and the
-//! first-run setup. The app acts for a person, so it may write.
+//! What the app's write commands do: pins, edits, new prompts and sync. The
+//! app acts for a person, so it may write.
 
 use promptshelf_core::config::{LibraryConfig, Writes};
 use promptshelf_core::pins::Pins;
-use promptshelf_core::prompt::{FOLDERS, Prompt as CorePrompt};
 use promptshelf_core::sync::{self as core_sync, Report};
 use promptshelf_core::write::{self, NewPrompt};
-use promptshelf_core::{Config, Error, Kind, Prompt, Result, Shelf};
+use promptshelf_core::{Config, Error, Kind, Result, Shelf, edit};
 
 fn personal_root(shelf: &Shelf) -> Result<std::path::PathBuf> {
     shelf
@@ -39,40 +38,10 @@ pub fn unpin(shelf: &Shelf, full_id: &str) -> Result<Pins> {
 }
 
 /// Writes the whole prompt file after the editor. The text must parse as a
-/// prompt, so a typo in the frontmatter never lands on disk. Returns the full
-/// ID, which changes when the frontmatter changes the ID.
+/// prompt. In a team library it goes into your proposal, never into the main
+/// folder. Returns the full ID, which changes when the frontmatter changes it.
 pub fn save_file(shelf: &Shelf, full_id: &str, text: &str) -> Result<String> {
-    let p = shelf.resolve(full_id)?;
-    let folder_kind = folder_kind(shelf, p);
-    let parsed = CorePrompt::parse(text, &p.path, &p.library, folder_kind)?;
-    if parsed.id != p.id
-        && let Some(other) = shelf.library(&p.library)?.get(&parsed.id)
-    {
-        return Err(Error::Invalid(format!(
-            "the ID \"{}\" is taken by {}",
-            parsed.id,
-            other.path.display()
-        )));
-    }
-    promptshelf_core::fsutil::write_atomic(&p.path, text.as_bytes())?;
-    Ok(parsed.full_id())
-}
-
-/// The kind the prompt's folder implies, for parsing an edit.
-pub(crate) fn folder_kind(shelf: &Shelf, p: &Prompt) -> Kind {
-    let Ok(lib) = shelf.library(&p.library) else {
-        return p.kind;
-    };
-    let rel = p.path.strip_prefix(&lib.root).unwrap_or(&p.path);
-    let first = rel
-        .components()
-        .next()
-        .map(|c| c.as_os_str().to_string_lossy().into_owned());
-    FOLDERS
-        .iter()
-        .find(|(folder, _)| first.as_deref() == Some(folder))
-        .map(|(_, k)| *k)
-        .unwrap_or(p.kind)
+    edit::save_text(shelf, full_id, text)
 }
 
 /// Creates a new prompt in a library (Personal when none is named).
@@ -88,7 +57,7 @@ pub fn new_prompt(shelf: &Shelf, title: &str, kind: Kind, library: Option<&str>)
     } else {
         title.trim()
     };
-    let (id, _) = write::create_prompt(
+    let (id, _) = write::create_in(
         lib,
         &NewPrompt {
             title,
