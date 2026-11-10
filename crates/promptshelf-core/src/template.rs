@@ -132,20 +132,40 @@ pub struct Rendered {
 /// Every blank a prompt uses, its own and its includes', in the order they first
 /// appear, with the spec that applies. The outer prompt's spec wins.
 pub fn blanks(shelf: &Shelf, prompt: &Prompt) -> Result<Vec<(String, VarSpec)>> {
+    Ok(blanks_owned(shelf, prompt)?
+        .into_iter()
+        .map(|b| (b.name, b.spec))
+        .collect())
+}
+
+/// A blank with the prompt that declares its spec.
+#[derive(Debug, Clone)]
+pub struct Blank {
+    pub name: String,
+    pub spec: VarSpec,
+    /// The full ID of the prompt whose `vars:` gave the spec. Shell commands are
+    /// checked against this prompt's library.
+    pub owner: String,
+}
+
+/// Like [`blanks`], with the prompt that declares each spec.
+pub fn blanks_owned(shelf: &Shelf, prompt: &Prompt) -> Result<Vec<Blank>> {
     let mut order: Vec<String> = Vec::new();
-    let mut specs: HashMap<String, VarSpec> = HashMap::new();
+    let mut specs: HashMap<String, (VarSpec, String)> = HashMap::new();
     collect(shelf, prompt, &mut order, &mut specs, &mut Vec::new())?;
     for (name, spec) in &prompt.vars {
-        specs.insert(name.clone(), spec.clone());
+        specs.insert(name.clone(), (spec.clone(), prompt.full_id()));
         if !order.contains(name) {
             order.push(name.clone());
         }
     }
     Ok(order
         .into_iter()
-        .map(|n| {
-            let spec = specs.remove(&n).unwrap_or_default();
-            (n, spec)
+        .map(|name| {
+            let (spec, owner) = specs
+                .remove(&name)
+                .unwrap_or_else(|| (VarSpec::default(), prompt.full_id()));
+            Blank { name, spec, owner }
         })
         .collect())
 }
@@ -154,7 +174,7 @@ fn collect(
     shelf: &Shelf,
     prompt: &Prompt,
     order: &mut Vec<String>,
-    specs: &mut HashMap<String, VarSpec>,
+    specs: &mut HashMap<String, (VarSpec, String)>,
     stack: &mut Vec<String>,
 ) -> Result<()> {
     enter(prompt, stack)?;
@@ -165,7 +185,9 @@ fn collect(
                     order.push(name.clone());
                 }
                 if let Some(spec) = prompt.vars.get(&name) {
-                    specs.entry(name).or_insert_with(|| spec.clone());
+                    specs
+                        .entry(name)
+                        .or_insert_with(|| (spec.clone(), prompt.full_id()));
                 }
             }
             Segment::Include(id) => {
