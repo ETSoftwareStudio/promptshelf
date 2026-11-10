@@ -4,6 +4,7 @@
 //! surface uses it: the `shelf` CLI, the terminal app and the desktop app.
 
 pub mod config;
+pub mod edit;
 pub mod error;
 pub mod fill;
 pub mod forge;
