@@ -6,10 +6,12 @@ import { listen } from "@tauri-apps/api/event";
 import type {
   AgentsView,
   Copied,
+  CopiedLink,
   Detail,
   Environment,
   InboxView,
   LibraryStatus,
+  Link,
   McpSetup,
   NewLibrary,
   ProposalView,
@@ -43,8 +45,9 @@ export const api = {
   reload: () => call<void>("reload"),
   list: (query: Query) => call<Summary[]>("list_prompts", { query }),
   get: (id: string) => call<Detail>("get_prompt", { id }),
-  fill: (id: string, given: Record<string, string> = {}) =>
-    call<FillView>("fill_prompt", { id, given }),
+  /** Runs the resolvers. `run: false` holds shell commands back. */
+  fill: (id: string, given: Record<string, string> = {}, run = true) =>
+    call<FillView>("fill_prompt", { id, given, run }),
   render: (id: string, values: Record<string, Value>) =>
     call<FillView>("render_prompt", { id, values }),
   send: (id: string, values: Record<string, Value>, paste = false) =>
@@ -101,6 +104,11 @@ export const api = {
   openWindow: (name: "library" | "settings" | "panel", tab?: "libraries" | "agents") =>
     call<void>("open_window", { name, tab: tab ?? null }),
   hidePanel: () => call<void>("hide_panel"),
+  /** The `promptshelf://` link that waits for the library window, once. */
+  takeLink: () => call<Link | null>("take_link"),
+  /** Tells the log what the library window did with a link. */
+  linkHandled: (outcome: string) => call<void>("link_handled", { outcome }),
+  copyLink: (id: string) => call<CopiedLink>("copy_link", { id }),
 };
 
 /** Opens a web page in the system browser. */

@@ -16,26 +16,31 @@ export class Filler {
   typed = $state<Record<string, string>>({});
   resolving = $state(false);
   error = $state<string | null>(null);
+  /** True when the resolvers ran with shell commands held back, as they do
+   *  for a prompt that a link opened. Run Commands runs them. */
+  held = $state(false);
 
   #load = 0;
   #render = 0;
   #timer: ReturnType<typeof setTimeout> | undefined;
 
   /** Shows the prompt with every blank open at once, then runs the
-   *  resolvers (they can run commands) and shows what they found. */
-  async load(id: string): Promise<void> {
+   *  resolvers and shows what they found. They run shell commands only
+   *  with `run`. */
+  async load(id: string, run = true): Promise<void> {
     const seq = ++this.#load;
     clearTimeout(this.#timer);
     this.id = id;
     this.typed = {};
     this.base = null;
     this.error = null;
+    this.held = !run;
     this.resolving = true;
     try {
       const quick = await api.render(id, {});
       if (seq !== this.#load) return;
       this.view = quick;
-      const base = await api.fill(id);
+      const base = await api.fill(id, {}, run);
       if (seq !== this.#load) return;
       this.base = base;
       if (Object.keys(this.typed).length) await this.rerender();
@@ -47,6 +52,35 @@ export class Filler {
     }
   }
 
+  /** Runs the resolvers again with shell commands, and keeps what you typed. */
+  async runCommands(): Promise<void> {
+    const id = this.id;
+    if (!id) return;
+    const seq = ++this.#load;
+    this.held = false;
+    this.resolving = true;
+    try {
+      const base = await api.fill(id, {}, true);
+      if (seq !== this.#load) return;
+      this.base = base;
+      this.error = null;
+      if (Object.keys(this.typed).length) await this.rerender();
+      else this.view = base;
+    } catch (e) {
+      if (seq === this.#load) this.error = errorText(e);
+    } finally {
+      if (seq === this.#load) this.resolving = false;
+    }
+  }
+
+  /** The open blanks that wait for Run Commands. */
+  waiting(): string[] {
+    if (!this.held || !this.base) return [];
+    return this.base.missing
+      .filter((m) => m.from && isCommand(m.from) && !(m.name in this.typed))
+      .map((m) => m.name);
+  }
+
   clear(): void {
     this.#load++;
     clearTimeout(this.#timer);
@@ -56,6 +90,7 @@ export class Filler {
     this.typed = {};
     this.error = null;
     this.resolving = false;
+    this.held = false;
   }
 
   /** Every value to send: what the resolvers found, then what you typed. */
@@ -100,8 +135,17 @@ export class Filler {
 
   /** Why a resolver could not fill a blank, if it tried. */
   reason(name: string): string | undefined {
+    if (this.waiting().includes(name)) return "Waits for Run Commands.";
     return this.base?.missing.find((m) => m.name === name)?.reason ?? undefined;
   }
+}
+
+/** Sources that are not shell commands, as in `promptshelf-core`. */
+const NAMED_SOURCES = ["conversation", "branch", "clipboard", "selection", "last"];
+
+/** True when a blank's `from` is a shell command. */
+export function isCommand(from: string): boolean {
+  return !NAMED_SOURCES.includes(from);
 }
 
 /** Resolved values with typed ones on top. An empty typed value removes the
