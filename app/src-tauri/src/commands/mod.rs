@@ -28,12 +28,19 @@ pub struct AppState {
     pub settings: Mutex<Settings>,
     /// Why the shortcut could not be registered, for Settings.
     pub hotkey_error: Mutex<Option<String>>,
+    /// The last sync of each library in this run, for the sidebar and Settings.
+    pub last_sync: Mutex<service::LastSyncs>,
 }
 
 pub(crate) type CmdResult<T> = Result<T, String>;
 
+/// An error in words for the person: git's failures get plain words first.
 pub(crate) fn msg(e: Error) -> String {
-    e.to_string()
+    let text = e.to_string();
+    match (&e, promptshelf_core::tools::explain(&text)) {
+        (Error::Git(_), Some(hint)) => format!("{} ({text})", hint.message),
+        _ => text,
+    }
 }
 
 impl AppState {
@@ -83,7 +90,10 @@ pub(crate) async fn blocking<T: Send + 'static>(
 #[tauri::command]
 pub async fn overview(state: State<'_, AppState>) -> CmdResult<Overview> {
     match state.shelf() {
-        Ok(shelf) => Ok(service::overview(&shelf, &load_pins(&shelf))),
+        Ok(shelf) => {
+            let last = state.last_sync.lock().expect("sync lock").clone();
+            Ok(service::overview(&shelf, &load_pins(&shelf), &last))
+        }
         Err(Error::NoConfig) => Ok(service::empty_overview()),
         Err(e) => Err(msg(e)),
     }

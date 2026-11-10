@@ -21,6 +21,7 @@ pub struct LibraryInfo {
     pub git: bool,
     pub exists: bool,
     pub count: usize,
+    pub last_sync: Option<LastSync>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -45,6 +46,11 @@ pub struct PinInfo {
 pub struct DiagnosticInfo {
     pub path: String,
     pub message: String,
+    pub library: Option<String>,
+    /// The path inside the library.
+    pub file: String,
+    /// What to do, in plain words.
+    pub help: String,
 }
 
 /// Everything the sidebar needs.
@@ -59,6 +65,11 @@ pub struct Overview {
     pub total: usize,
     pub pins: Vec<PinInfo>,
     pub diagnostics: Vec<DiagnosticInfo>,
+    /// Team updates in the Inbox.
+    pub updates: usize,
+    pub proposals: usize,
+    /// Libraries whose last sync had a conflict or an error.
+    pub sync_problems: Vec<String>,
 }
 
 /// A prompt in the list.
@@ -77,6 +88,8 @@ pub struct Summary {
     pub uses: u64,
     /// `YYYY-MM-DD`, UTC.
     pub last_used: Option<String>,
+    /// True when this is your proposed version of a team prompt.
+    pub proposal: bool,
 }
 
 /// A prompt with its file, for the detail column and the editor.
@@ -91,6 +104,12 @@ pub struct Detail {
     pub forked_from: Option<String>,
     /// The whole file, frontmatter included, for the Markdown editor.
     pub file: String,
+    /// "commit", or "pull-request" for a team library.
+    pub writes: &'static str,
+    /// Your proposal for this prompt, in a team library.
+    pub proposal_info: Option<ProposalView>,
+    /// Shell commands from a library you do not trust that are not allowed yet.
+    pub blocked: Vec<String>,
 }
 
 /// Which prompts the list shows.
@@ -156,4 +175,101 @@ pub struct FillView {
     pub missing: Vec<Missing>,
     /// The spec of every blank, the includes' too: hints and choices.
     pub specs: BTreeMap<String, VarSpec>,
+}
+
+/// A library's git state, for Settings → Libraries.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryStatus {
+    pub name: String,
+    /// `origin` as git has it; the config can be out of date.
+    pub remote: Option<String>,
+    pub branch: Option<String>,
+    /// Commits not pushed yet, and commits on the remote not pulled yet.
+    pub ahead: u32,
+    pub behind: u32,
+    /// Files with uncommitted changes.
+    pub changes: usize,
+    pub last_sync: Option<LastSync>,
+}
+
+/// The last sync of one library in this run of the app.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LastSync {
+    /// Seconds since 1970, UTC.
+    pub at: u64,
+    pub error: Option<String>,
+    pub hint: Option<promptshelf_core::tools::Hint>,
+    pub conflicts: Vec<String>,
+}
+
+/// A sync report with plain words for its error.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncView {
+    #[serde(flatten)]
+    pub report: promptshelf_core::sync::Report,
+    pub hint: Option<promptshelf_core::tools::Hint>,
+}
+
+/// git and gh on this computer.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Environment {
+    pub git: promptshelf_core::tools::GitInfo,
+    pub gh: promptshelf_core::tools::Gh,
+}
+
+/// One proposal, for the Proposals list and the detail banner.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProposalView {
+    pub full_id: String,
+    pub library: String,
+    pub id: String,
+    pub title: String,
+    /// "not-sent", "sent", "changes-requested", "not-merged" or "gone".
+    pub status: promptshelf_core::proposals::Status,
+    pub number: Option<u64>,
+    pub url: Option<String>,
+    pub branch: String,
+    /// Edits made after the last send.
+    pub unsent: bool,
+}
+
+/// One team update in the Inbox.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateView {
+    #[serde(flatten)]
+    pub update: promptshelf_core::inbox::Update,
+    pub full_id: String,
+    pub title: String,
+    /// Commands of `new_commands` you allowed already.
+    pub allowed: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InboxView {
+    pub drafts: Vec<Summary>,
+    pub updates: Vec<UpdateView>,
+}
+
+/// The connected tools in Settings → Agents.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentsView {
+    pub skill_path: String,
+    pub skill_installed: bool,
+    /// False when the installed skill is an older text.
+    pub skill_current: bool,
+    /// The `shelf` command PromptShelf finds, if any.
+    pub command: Option<String>,
+    /// Why this app can not install the command here, if it can not.
+    pub command_note: Option<String>,
+    pub claude_config: Option<String>,
+    /// The command Claude Desktop starts for PromptShelf, if set up.
+    pub claude_command: Option<String>,
 }

@@ -87,7 +87,7 @@ fn overview_counts_kinds_and_pins() {
     let pins = Pins {
         pins: vec!["personal/review".into(), "personal/gone".into()],
     };
-    let o = overview(&shelf, &pins);
+    let o = overview(&shelf, &pins, &LastSyncs::new());
     assert_eq!(o.total, 3);
     assert_eq!(o.personal.as_deref(), Some("personal"));
     assert_eq!(o.libraries[0].count, 3);

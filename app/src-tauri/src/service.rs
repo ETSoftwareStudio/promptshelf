@@ -30,33 +30,67 @@ pub fn summary(p: &Prompt, pins: &Pins, usage: &UsageLog) -> Summary {
         title: p.title.clone(),
         description: p.description.clone(),
         tags: p.tags.clone(),
+        proposal: p.proposal,
     }
 }
 
-fn library_info(lib: &Library, personal: bool) -> LibraryInfo {
+pub fn writes_name(w: Writes) -> &'static str {
+    match w {
+        Writes::Commit => "commit",
+        Writes::PullRequest => "pull-request",
+    }
+}
+
+/// The last sync of each library, by name.
+pub type LastSyncs = BTreeMap<String, LastSync>;
+
+fn library_info(lib: &Library, personal: bool, last: &LastSyncs) -> LibraryInfo {
     let c = &lib.config;
     LibraryInfo {
         name: c.name.clone(),
         path: c.path.clone(),
         remote: c.remote.clone(),
-        writes: match c.writes {
-            Writes::Commit => "commit",
-            Writes::PullRequest => "pull-request",
-        },
+        writes: writes_name(c.writes),
         personal,
         trusted: c.is_trusted(),
         git: promptshelf_core::git::is_repo(&lib.root),
         exists: lib.root.is_dir(),
         count: lib.prompts.len(),
+        last_sync: last.get(lib.name()).cloned(),
     }
 }
 
-pub fn overview(shelf: &Shelf, pins: &Pins) -> Overview {
+/// What to do about a file that could not be read, in plain words.
+fn diagnostic(shelf: &Shelf, d: &promptshelf_core::shelf::Diagnostic) -> DiagnosticInfo {
+    let lib = shelf.libraries.iter().find(|l| d.path.starts_with(&l.root));
+    let file = lib
+        .and_then(|l| d.path.strip_prefix(&l.root).ok())
+        .map(|p| p.display().to_string())
+        .unwrap_or_else(|| d.path.display().to_string());
+    let help = if d.message.contains("duplicate ID") {
+        "Two files use the same ID. Change the id: line in one of them."
+    } else if d.message.contains("folder does not exist") {
+        "The folder is gone. Remove the library in Settings → Libraries, or put the folder back."
+    } else if d.message.contains("ID") {
+        "The ID may use only a-z, 0-9 and -. Edit the id: line."
+    } else {
+        "The block between the --- lines is not valid YAML. Edit the file to fix it."
+    };
+    DiagnosticInfo {
+        path: d.path.display().to_string(),
+        message: d.message.clone(),
+        library: lib.map(|l| l.name().to_string()),
+        file,
+        help: help.into(),
+    }
+}
+
+pub fn overview(shelf: &Shelf, pins: &Pins, last: &LastSyncs) -> Overview {
     let personal = shelf.personal().map(|l| l.name().to_string());
     let libraries = shelf
         .libraries
         .iter()
-        .map(|l| library_info(l, personal.as_deref() == Some(l.name())))
+        .map(|l| library_info(l, personal.as_deref() == Some(l.name()), last))
         .collect();
     let mut kinds: BTreeMap<Kind, usize> = BTreeMap::new();
     for p in shelf.prompts() {
@@ -90,10 +124,17 @@ pub fn overview(shelf: &Shelf, pins: &Pins) -> Overview {
         diagnostics: shelf
             .diagnostics
             .iter()
-            .map(|d| DiagnosticInfo {
-                path: d.path.display().to_string(),
-                message: d.message.clone(),
-            })
+            .map(|d| diagnostic(shelf, d))
+            .collect(),
+        updates: promptshelf_core::inbox::load().len(),
+        proposals: promptshelf_core::proposals::load()
+            .iter()
+            .filter(|p| shelf.library(&p.library).is_ok())
+            .count(),
+        sync_problems: last
+            .iter()
+            .filter(|(_, s)| s.error.is_some() || !s.conflicts.is_empty())
+            .map(|(name, _)| name.clone())
             .collect(),
     }
 }
@@ -109,6 +150,9 @@ pub fn empty_overview() -> Overview {
         total: 0,
         pins: Vec::new(),
         diagnostics: Vec::new(),
+        updates: 0,
+        proposals: 0,
+        sync_problems: Vec::new(),
     }
 }
 
@@ -157,6 +201,19 @@ pub fn list(shelf: &Shelf, pins: &Pins, usage: &UsageLog, q: &Query) -> Result<V
 pub fn detail(shelf: &Shelf, pins: &Pins, usage: &UsageLog, full_id: &str) -> Result<Detail> {
     let p = shelf.resolve(full_id)?;
     let file = std::fs::read_to_string(&p.path).map_err(|e| Error::io(&p.path, e))?;
+    let lib = shelf.library(&p.library)?;
+    let allowed = promptshelf_core::state::Allowed::load().unwrap_or_default();
+    let blocked = fill::commands(shelf, p)?
+        .into_iter()
+        .filter(|(owner, cmd)| {
+            let owner_lib = owner.split('/').next().unwrap_or("");
+            !shelf
+                .library(owner_lib)
+                .is_ok_and(|l| l.config.is_trusted())
+                && !allowed.allows(owner, cmd)
+        })
+        .map(|(_, cmd)| cmd)
+        .collect();
     Ok(Detail {
         summary: summary(p, pins, usage),
         path: p.path.display().to_string(),
@@ -164,6 +221,9 @@ pub fn detail(shelf: &Shelf, pins: &Pins, usage: &UsageLog, full_id: &str) -> Re
         vars: p.vars.clone(),
         forked_from: p.forked_from.clone(),
         file,
+        writes: writes_name(lib.config.writes),
+        proposal_info: None,
+        blocked,
     })
 }
 
