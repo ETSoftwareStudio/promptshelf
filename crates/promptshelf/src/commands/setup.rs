@@ -37,6 +37,12 @@ pub(super) fn init(ctx: &Ctx, a: InitArgs) -> Result<u8> {
     let personal = config.personal().expect("personal library exists");
     let root = personal.root();
     write::init_library(&root)?;
+    // Personal is a git repo from the start, so `shelf sync` can work later.
+    if !promptshelf_core::git::is_repo(&root)
+        && promptshelf_core::git::run(&root, &["init", "-q", "-b", "main"]).is_ok()
+    {
+        promptshelf_core::sync::setup_merge_driver(&root, &super::sync::driver_program())?;
+    }
     if ctx.json {
         output::json(json!({
             "config": Config::path().display().to_string(),

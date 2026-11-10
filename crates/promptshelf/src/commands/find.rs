@@ -10,9 +10,10 @@ use crate::{FilterArgs, IdArgs, exit};
 pub(super) fn list(ctx: &Ctx, a: FilterArgs) -> Result<u8> {
     let shelf = load()?;
     let prompts = shelf.list(&filter(a))?;
+    let pins = promptshelf_core::pins::load(&shelf).unwrap_or_default();
     let rows: Vec<Summary> = prompts
         .iter()
-        .map(|p| Summary::new(&shelf, p, None))
+        .map(|p| Summary::new(&shelf, p, None, &pins))
         .collect();
     if ctx.json {
         output::json(json!({
@@ -32,9 +33,10 @@ pub(super) fn list(ctx: &Ctx, a: FilterArgs) -> Result<u8> {
 pub(super) fn search(ctx: &Ctx, query: &str, a: FilterArgs) -> Result<u8> {
     let shelf = load()?;
     let hits = shelf.search(query, &filter(a))?;
+    let pins = promptshelf_core::pins::load(&shelf).unwrap_or_default();
     let rows: Vec<Summary> = hits
         .iter()
-        .map(|h| Summary::new(&shelf, h.prompt, Some(h.score)))
+        .map(|h| Summary::new(&shelf, h.prompt, Some(h.score), &pins))
         .collect();
     if ctx.json {
         output::json(json!({

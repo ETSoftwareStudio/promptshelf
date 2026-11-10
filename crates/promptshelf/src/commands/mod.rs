@@ -4,6 +4,7 @@ mod fill;
 mod find;
 mod save;
 mod setup;
+mod sync;
 
 use clap::CommandFactory;
 use promptshelf_core::{Config, Error, ListFilter, Result, Shelf, VarSpec};
@@ -43,6 +44,12 @@ pub fn dispatch(cli: Cli) -> u8 {
         },
         Some(Command::Skill(a)) => setup::skill(&ctx, a.command),
         Some(Command::Check) => find::check(&ctx),
+        Some(Command::Pin(a)) => sync::pin(&ctx, a),
+        Some(Command::Unpin(a)) => sync::unpin(&ctx, a),
+        Some(Command::Pins) => sync::pins(&ctx),
+        Some(Command::Sync(a)) => sync::sync(&ctx, a),
+        Some(Command::Allow(a)) => sync::allow(&ctx, a),
+        Some(Command::MergePins { base, ours, theirs }) => sync::merge_pins(&base, &ours, &theirs),
     };
     match result {
         Ok(code) => code,

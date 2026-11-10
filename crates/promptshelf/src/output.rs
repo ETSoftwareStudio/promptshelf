@@ -1,5 +1,6 @@
 //! JSON and text output.
 
+use promptshelf_core::pins::Pins;
 use promptshelf_core::{JSON_SCHEMA, Prompt, Shelf, shelf::Diagnostic, template};
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -39,10 +40,13 @@ pub struct Summary<'a> {
     pub path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub score: Option<u32>,
+    /// The pin position, 1 to 9.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pinned: Option<usize>,
 }
 
 impl<'a> Summary<'a> {
-    pub fn new(shelf: &Shelf, p: &'a Prompt, score: Option<u32>) -> Self {
+    pub fn new(shelf: &Shelf, p: &'a Prompt, score: Option<u32>, pins: &Pins) -> Self {
         let blanks = template::blanks(shelf, p)
             .map(|b| b.into_iter().map(|(n, _)| n).collect())
             .unwrap_or_default();
@@ -56,6 +60,7 @@ impl<'a> Summary<'a> {
             blanks,
             path: p.path.display().to_string(),
             score,
+            pinned: pins.position(&p.full_id()),
         }
     }
 }
