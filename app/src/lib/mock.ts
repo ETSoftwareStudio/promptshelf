@@ -2,6 +2,7 @@
 // looked at without Tauri. Only dev builds load it. Every name is made up.
 
 import { PINS, PROMPTS, RESOLVED, type MockPrompt } from "./mock-data";
+import { callMore } from "./mock-more";
 import { state, sync } from "./mock-state";
 import type {
   Detail,
@@ -150,11 +151,23 @@ function overview(): Overview {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Commands of the mock that return nothing. */
+const NO_RESULT = new Set([
+  "update_library",
+  "withdraw_proposal",
+  "dismiss_update",
+  "delete_prompt",
+  "save_file",
+  "open_url",
+]);
+
 let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/payments" };
 
 export async function call(cmd: string, a: Record<string, unknown>): Promise<unknown> {
   const id = a.id as string;
   const p = id ? find(id) : undefined;
+  const more = await callMore(cmd, a);
+  if (more !== undefined || NO_RESULT.has(cmd)) return more;
   if (id && !p && cmd !== "unpin_prompt") throw new Error(`no prompt with the ID "${id}"`);
   switch (cmd) {
     case "overview":
@@ -237,9 +250,6 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
     case "sync_libraries":
       await wait(600);
       return sync(a.library as string | null) satisfies SyncReport[];
-    case "init_personal":
-      state.configured = true;
-      return "~/Prompts/personal";
     case "get_settings":
     case "set_settings":
       if (cmd === "set_settings") settings = a.settings as typeof settings;
