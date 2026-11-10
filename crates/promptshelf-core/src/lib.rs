@@ -19,6 +19,7 @@ pub mod shelf;
 pub mod state;
 pub mod sync;
 pub mod template;
+pub mod tools;
 pub mod write;
 
 pub use config::Config;
