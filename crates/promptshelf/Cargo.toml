@@ -1,0 +1,24 @@
+[package]
+name = "promptshelf"
+description = "Save, fill and share prompts from the terminal. Installs the `shelf` command."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+default-run = "shelf"
+
+[[bin]]
+name = "shelf"
+path = "src/bin/shelf.rs"
+
+[[bin]]
+name = "promptshelf"
+path = "src/bin/promptshelf.rs"
+
+[dependencies]
+promptshelf-core.workspace = true
+
+[lints]
+workspace = true
