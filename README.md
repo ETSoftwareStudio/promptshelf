@@ -23,5 +23,7 @@ The workspace has two crates:
 | `crates/promptshelf-core` | The library: prompt files, templates, libraries, sync |
 | `crates/promptshelf` | The `shelf` command (also installed as `promptshelf`) |
 
+The desktop app is in `app/`, outside the workspace. See [app/README.md](app/README.md).
+
 ## Licence
 MIT. See [LICENSE](LICENSE).
