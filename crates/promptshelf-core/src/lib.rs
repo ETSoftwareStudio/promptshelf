@@ -7,10 +7,12 @@ pub mod config;
 pub mod error;
 pub mod fsutil;
 pub mod prompt;
+pub mod shelf;
 
 pub use error::{Error, Result};
 pub use config::Config;
 pub use prompt::{Kind, Prompt, VarSpec};
+pub use shelf::{ListFilter, Shelf};
 
 /// The version of this crate, from `Cargo.toml`.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
