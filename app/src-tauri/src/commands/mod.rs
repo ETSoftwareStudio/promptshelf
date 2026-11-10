@@ -200,10 +200,12 @@ pub async fn send_prompt(
     Ok(result)
 }
 
+mod about;
 mod agents;
 mod manage;
 mod more;
 mod team;
+pub use about::*;
 pub use agents::*;
 pub use manage::*;
 pub use more::*;

@@ -194,19 +194,5 @@ pub async fn hide_panel(app: AppHandle) -> CmdResult<()> {
 /// Opens a web page in the system browser: pull requests and help pages.
 #[tauri::command]
 pub async fn open_url(url: String) -> CmdResult<()> {
-    if !(url.starts_with("https://") || url.starts_with("http://")) {
-        return Err(format!("{url} is not a web address"));
-    }
-    let program = if cfg!(target_os = "macos") {
-        "open"
-    } else if cfg!(windows) {
-        "explorer"
-    } else {
-        "xdg-open"
-    };
-    std::process::Command::new(program)
-        .arg(&url)
-        .spawn()
-        .map(|_| ())
-        .map_err(|e| format!("could not open {url}: {e}"))
+    crate::about::open(&url)
 }

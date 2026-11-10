@@ -1,14 +1,11 @@
 //! The native menu bar and the tray icon with its menu.
 
 use tauri::image::Image;
-use tauri::menu::{
-    AboutMetadata, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, PredefinedMenuItem,
-    SubmenuBuilder,
-};
+use tauri::menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Runtime};
 
-use crate::windows;
+use crate::{about, windows};
 
 /// Menu item IDs. The UI gets the ones it handles as a "menu" event.
 pub const NEW_PROMPT: &str = "new-prompt";
@@ -18,21 +15,16 @@ const SETTINGS: &str = "settings";
 const LIBRARY: &str = "library";
 const PANEL: &str = "panel";
 const QUIT: &str = "quit";
+const ABOUT: &str = "about";
+const GITHUB: &str = "github";
+const REPORT: &str = "report";
 
 pub fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     let settings = MenuItemBuilder::with_id(SETTINGS, "Settings…")
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
-    let about = PredefinedMenuItem::about(
-        app,
-        Some("About PromptShelf"),
-        Some(AboutMetadata {
-            name: Some("PromptShelf".into()),
-            version: Some(env!("CARGO_PKG_VERSION").into()),
-            license: Some("MIT".into()),
-            ..Default::default()
-        }),
-    )?;
+    // Opens Settings → About, not the bare system dialog.
+    let about = MenuItemBuilder::with_id(ABOUT, "About PromptShelf").build(app)?;
     let quit = MenuItemBuilder::with_id(QUIT, "Quit PromptShelf")
         .accelerator("CmdOrCtrl+Q")
         .build(app)?;
@@ -89,16 +81,17 @@ pub fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         )
         .item(&MenuItemBuilder::with_id(PANEL, "Quick Panel").build(app)?)
         .build()?;
+    let mut help = SubmenuBuilder::new(app, "Help")
+        .item(&MenuItemBuilder::with_id(GITHUB, "PromptShelf on GitHub").build(app)?)
+        .item(&MenuItemBuilder::with_id(REPORT, "Report a Problem…").build(app)?);
     if !cfg!(target_os = "macos") {
-        let help = SubmenuBuilder::new(app, "Help").item(&about).build()?;
-        return menu
-            .item(&file.build()?)
-            .item(&edit)
-            .item(&window)
-            .item(&help)
-            .build();
+        help = help.separator().item(&about);
     }
-    menu.item(&file.build()?).item(&edit).item(&window).build()
+    menu.item(&file.build()?)
+        .item(&edit)
+        .item(&window)
+        .item(&help.build()?)
+        .build()
 }
 
 /// Handles a click on the menu bar or the tray menu.
@@ -108,6 +101,16 @@ pub fn on_menu_event(app: &AppHandle, event: MenuEvent) {
         LIBRARY => windows::show_library(app),
         PANEL => windows::show_panel(app, None),
         QUIT => app.exit(0),
+        ABOUT => {
+            windows::show_settings(app);
+            let _ = app.emit_to(windows::SETTINGS, "settings-tab", "about");
+        }
+        GITHUB => {
+            let _ = about::open(about::REPO);
+        }
+        REPORT => {
+            let _ = about::open(&about::issue_url());
+        }
         id @ (NEW_PROMPT | FIND) => {
             windows::show_library(app);
             let _ = app.emit_to(windows::LIBRARY, "menu", id);
