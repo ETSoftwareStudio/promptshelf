@@ -2,14 +2,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Detail from "../components/Detail.svelte";
+  import FirstRun from "../components/FirstRun.svelte";
   import NoPrompt from "../components/NoPrompt.svelte";
+  import NewPromptSheet from "../components/NewPromptSheet.svelte";
   import PromptList from "../components/PromptList.svelte";
   import SendSheet from "../components/SendSheet.svelte";
   import Sidebar from "../components/Sidebar.svelte";
   import { api, copyInBrowser, errorText, onEvent } from "../lib/api";
   import { Filler } from "../lib/filler.svelte";
   import { libraryKey } from "../lib/keys";
-  import { navQuery, navTitle } from "../lib/nav";
+  import { navQuery, navTitle, syncSummary } from "../lib/nav";
   import { onFocus } from "../lib/platform";
   import { Toast } from "../lib/toast.svelte";
   import type { Detail as DetailT, Kind, Overview, Summary } from "../lib/types";
@@ -152,12 +154,55 @@
     }
   }
 
+  async function create(title: string, kind: Kind, library: string) {
+    sheet = null;
+    try {
+      const id = await api.newPrompt(title, kind, library);
+      await loadOverview();
+      nav = "all";
+      clearQuery();
+      await loadList();
+      await select(id);
+      detailView?.edit();
+    } catch (e) {
+      toast.show(errorText(e), true);
+    }
+  }
+
   async function saved(id: string) {
     toast.show("Saved.");
     await loadOverview();
     await loadList();
     selected = null;
     await select(id);
+  }
+
+  async function sync() {
+    if (syncing) return;
+    syncing = true;
+    try {
+      const reports = await api.sync();
+      const sum = syncSummary(reports);
+      const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      syncNote = sum.bad ? "Sync needs a look" : `Synced at ${time}`;
+      if (sum.message) toast.show(sum.message, sum.bad, sum.bad ? 6000 : 2600);
+      await refresh();
+    } catch (e) {
+      toast.show(errorText(e), true);
+    } finally {
+      syncing = false;
+    }
+  }
+
+  async function initPersonal() {
+    try {
+      const path = await api.initPersonal();
+      toast.show(`Created your Personal library in ${path}`);
+      await loadOverview();
+      await loadList(false);
+    } catch (e) {
+      toast.show(errorText(e), true);
+    }
   }
 
   // Search as you type.
@@ -181,6 +226,8 @@
     } else if (key === "find") {
       searchEl?.focus();
       searchEl?.select();
+    } else if (key === "new") {
+      sheet = "new";
     } else if (!detail || editing) {
       return;
     } else if (key === "send") {
@@ -196,7 +243,9 @@
     const stops = [
       onFocus(() => void refresh()),
       onEvent<string>("menu", (id) => {
-        if (id === "find") searchEl?.focus();
+        if (id === "new-prompt") sheet = "new";
+        else if (id === "sync") void sync();
+        else if (id === "find") searchEl?.focus();
       }),
     ];
     return () => stops.forEach((s) => s());
@@ -209,6 +258,8 @@
   <div class="loading" data-tauri-drag-region>
     {#if loadError}<div class="empty"><h4>PromptShelf could not start</h4><p>{loadError}</p></div>{/if}
   </div>
+{:else if !overview.hasConfig}
+  <FirstRun oncreate={() => void initPersonal()} />
 {:else}
   <main class="lib">
     <Sidebar
@@ -219,7 +270,7 @@
       {syncNote}
       onnav={setNav}
       onpin={(id) => void openPin(id)}
-      onsync={() => void api.sync().then(refresh)}
+      onsync={() => void sync()}
     />
     <PromptList
       {title}
@@ -230,7 +281,7 @@
       loading={listing}
       personal={overview.personal}
       onselect={(id) => void select(id)}
-      onnew={() => {}}
+      onnew={() => (sheet = "new")}
       onopen={() => detail && (sheet = "send")}
     />
     {#if detail}
@@ -256,6 +307,13 @@
     open={filler.view.missing.length}
     busy={sending}
     oncopy={() => void copy()}
+    oncancel={() => (sheet = null)}
+  />
+{:else if sheet === "new" && overview}
+  <NewPromptSheet
+    libraries={overview.libraries}
+    personal={overview.personal}
+    oncreate={(t, k, l) => void create(t, k, l)}
     oncancel={() => (sheet = null)}
   />
 {/if}
