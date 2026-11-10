@@ -1,0 +1,27 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"search\", \"explain\"])"
+---
+{
+  "diagnostics": [],
+  "prompts": [
+    {
+      "blanks": [
+        "topic",
+        "audience"
+      ],
+      "id": "examples/explain-like-a-colleague",
+      "kind": "template",
+      "library": "examples",
+      "path": "[path]",
+      "score": 8,
+      "tags": [
+        "writing",
+        "explain"
+      ],
+      "title": "Explain like a colleague"
+    }
+  ],
+  "query": "explain",
+  "schema": 1
+}

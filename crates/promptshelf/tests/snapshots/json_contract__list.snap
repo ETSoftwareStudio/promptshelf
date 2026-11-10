@@ -1,0 +1,70 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"list\"])"
+---
+{
+  "diagnostics": [],
+  "prompts": [
+    {
+      "blanks": [
+        "topic",
+        "audience"
+      ],
+      "id": "examples/explain-like-a-colleague",
+      "kind": "template",
+      "library": "examples",
+      "path": "[path]",
+      "tags": [
+        "writing",
+        "explain"
+      ],
+      "title": "Explain like a colleague"
+    },
+    {
+      "blanks": [
+        "focus",
+        "findings",
+        "diff"
+      ],
+      "id": "examples/strict-pr-review",
+      "kind": "template",
+      "library": "examples",
+      "path": "[path]",
+      "tags": [
+        "review",
+        "code"
+      ],
+      "title": "Strict PR review"
+    },
+    {
+      "blanks": [],
+      "id": "examples/house-rules",
+      "kind": "snippet",
+      "library": "examples",
+      "path": "[path]",
+      "tags": [
+        "review"
+      ],
+      "title": "House rules"
+    },
+    {
+      "blanks": [],
+      "id": "examples/about-me",
+      "kind": "context",
+      "library": "examples",
+      "path": "[path]",
+      "tags": [],
+      "title": "About me"
+    },
+    {
+      "blanks": [],
+      "id": "examples/rough-idea",
+      "kind": "draft",
+      "library": "examples",
+      "path": "[path]",
+      "tags": [],
+      "title": "Rough idea"
+    }
+  ],
+  "schema": 1
+}

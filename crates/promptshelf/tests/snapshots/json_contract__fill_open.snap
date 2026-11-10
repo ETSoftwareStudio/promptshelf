@@ -1,0 +1,25 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"fill\", \"explain-like-a-colleague\"])"
+---
+{
+  "complete": false,
+  "id": "examples/explain-like-a-colleague",
+  "instruction": "Some blanks in this prompt are not filled. Fill each blank from the conversation so far. Ask the user only about values you can not work out.",
+  "missing": [
+    {
+      "from": "conversation",
+      "hint": "what to explain",
+      "name": "topic"
+    }
+  ],
+  "schema": 1,
+  "text": "Explain {{topic}} to a developer new to this codebase. Start with what it does, then how it works.\nUse one short example. I write Rust and TypeScript, and I prefer short answers with code.\n",
+  "values": [
+    {
+      "name": "audience",
+      "source": "default",
+      "value": "a developer new to this codebase"
+    }
+  ]
+}

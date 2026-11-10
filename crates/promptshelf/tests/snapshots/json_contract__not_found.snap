@@ -1,0 +1,11 @@
+---
+source: crates/promptshelf/tests/json_contract.rs
+expression: "run(&[\"show\", \"nope\"])"
+---
+{
+  "error": {
+    "code": "not_found",
+    "message": "no prompt with the ID \"nope\""
+  },
+  "schema": 1
+}
