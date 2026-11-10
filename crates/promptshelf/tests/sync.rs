@@ -39,7 +39,8 @@ fn git(world: &World, dir: &Path, args: &[&str]) -> String {
 fn world() -> World {
     let dir = tempfile::tempdir().unwrap();
     let git_config = dir.path().join("gitconfig");
-    std::fs::write(&git_config, "").unwrap();
+    // Like a CI runner: no name or email, and git must not guess one.
+    std::fs::write(&git_config, "[user]\n\tuseConfigOnly = true\n").unwrap();
     let remote = dir.path().join("remote.git");
     let w = World {
         dir,

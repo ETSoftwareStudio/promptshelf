@@ -115,7 +115,9 @@ fn run(lib: &Library, personal: bool, opts: &Options, report: &mut Report) -> Re
 /// Rebases onto the upstream. On a conflict it aborts, records the files and
 /// returns false.
 fn rebase(root: &Path, report: &mut Report) -> Result<bool> {
-    let r = git::try_run(root, &["rebase", "-q", "--autostash", "@{u}"])?;
+    let mut args = identity(root)?;
+    args.extend(["rebase", "-q", "--autostash", "@{u}"]);
+    let r = git::try_run(root, &args)?;
     if r.ok {
         return Ok(true);
     }
@@ -161,19 +163,24 @@ pub fn checkpoint(root: &Path) -> Result<Option<String>> {
         many => format!("Update {} files", many.len()),
     };
     git::run(root, &["add", "-A"])?;
-    let mut args: Vec<&str> = Vec::new();
-    let has_identity = git::try_run(root, &["config", "user.email"])?.ok;
-    if !has_identity {
-        args.extend([
-            "-c",
-            "user.name=PromptShelf",
-            "-c",
-            "user.email=promptshelf@localhost",
-        ]);
-    }
+    let mut args = identity(root)?;
     args.extend(["commit", "-q", "--no-verify", "-m", &message]);
     git::run(root, &args)?;
     Ok(Some(message))
+}
+
+/// `-c` options with a fallback name and email when git has none, for the
+/// commands that make commits. Your own identity always wins.
+fn identity(root: &Path) -> Result<Vec<&'static str>> {
+    if git::try_run(root, &["config", "user.email"])?.ok {
+        return Ok(Vec::new());
+    }
+    Ok(vec![
+        "-c",
+        "user.name=PromptShelf",
+        "-c",
+        "user.email=promptshelf@localhost",
+    ])
 }
 
 /// Points git at `shelf merge-pins` for the pin list, so two Macs that pin
