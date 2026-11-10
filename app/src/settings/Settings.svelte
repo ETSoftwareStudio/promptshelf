@@ -1,29 +1,30 @@
-<!-- Settings: the panel shortcut, the folder resolvers run in, and the
-     libraries (read-only here; `shelf libs` changes them). -->
+<!-- Settings: the panel shortcut and the folder resolvers run in (General),
+     the libraries and their remotes (Libraries), and agents (Agents). -->
 <script lang="ts">
   import { onMount } from "svelte";
   import Icon from "../components/Icon.svelte";
   import { api, errorText, onEvent } from "../lib/api";
-  import { libraryLabel } from "../lib/format";
-  import { syncSummary } from "../lib/nav";
   import { acceleratorFrom, displayAccelerator, isMac } from "../lib/hotkey";
   import { Toast } from "../lib/toast.svelte";
-  import type { Overview, SettingsView } from "../lib/types";
+  import type { SettingsView } from "../lib/types";
+  import AgentsPane from "./AgentsPane.svelte";
+  import LibrariesPane from "./LibrariesPane.svelte";
 
-  let tab = $state<"general" | "libraries">("general");
+  const TABS = ["general", "libraries", "agents"] as const;
+  const fromHash = TABS.find((t) => location.hash.includes(t));
+  let tab = $state<(typeof TABS)[number]>(fromHash ?? "general");
   let view = $state<SettingsView | null>(null);
-  let overview = $state<Overview | null>(null);
   let recording = $state(false);
   let workDir = $state("");
   let error = $state<string | null>(null);
-  let syncing = $state(false);
+  let libraries = $state<ReturnType<typeof LibrariesPane>>();
   const toast = new Toast();
 
   async function load() {
     try {
       view = await api.getSettings();
       workDir = view.settings.workDir;
-      overview = await api.overview();
+      await libraries?.load();
     } catch (e) {
       error = errorText(e);
     }
@@ -60,23 +61,13 @@
     }
   }
 
-  async function syncNow() {
-    syncing = true;
-    try {
-      const reports = await api.sync();
-      const sum = syncSummary(reports);
-      toast.show(sum.message ?? "Synced.", sum.bad);
-      overview = await api.overview();
-    } catch (e) {
-      toast.show(errorText(e), true);
-    } finally {
-      syncing = false;
-    }
-  }
-
   onMount(() => {
     void load();
-    return onEvent("settings-opened", () => void load());
+    const stops = [
+      onEvent("settings-opened", () => void load()),
+      onEvent<string>("settings-tab", (t) => (tab = TABS.find((x) => x === t) ?? tab)),
+    ];
+    return () => stops.forEach((s) => s());
   });
 </script>
 
@@ -89,6 +80,9 @@
     </button>
     <button class="stab" class:on={tab === "libraries"} onclick={() => (tab = "libraries")}>
       <Icon name="folder" />Libraries
+    </button>
+    <button class="stab" class:on={tab === "agents"} onclick={() => (tab = "agents")}>
+      <Icon name="terminal" />Agents
     </button>
   </nav>
 
@@ -140,35 +134,10 @@
         </div>
       </div>
       <p class="foot">Settings live in <code>{view.settingsPath}</code>.</p>
-    {:else if tab === "libraries" && overview}
-      <div class="grp">
-        {#each overview.libraries as lib (lib.name)}
-          <div class="fr">
-            <Icon name="folder" class="ico" />
-            <span class="stack">
-              <span>{libraryLabel(lib.name)}{#if lib.personal}<span class="tag">Personal</span>{/if}</span>
-              <span class="sub2 mono" title={lib.path}>{lib.remote ?? lib.path}</span>
-            </span>
-            <span class="val">
-              <span class="pop">{lib.writes === "commit" ? "Commit directly" : "Pull request"}</span>
-              <span class="okt" class:off={!lib.git}>
-                {#if lib.git}<Icon name="check" small />{lib.count} prompts{:else}Not a git repo{/if}
-              </span>
-            </span>
-          </div>
-        {:else}
-          <div class="fr">No libraries yet.</div>
-        {/each}
-        <div class="fr">
-          <span class="sub2">Add or change libraries with <code>shelf libs add</code> in a terminal.</span>
-          <span class="val">
-            <button class="btn sm" onclick={() => void syncNow()} disabled={syncing}>
-              {syncing ? "Syncing…" : "Sync Now"}
-            </button>
-          </span>
-        </div>
-      </div>
-      <p class="foot">Libraries are listed in <code>{overview.configPath}</code>.</p>
+    {:else if tab === "libraries"}
+      <LibrariesPane bind:this={libraries} {toast} />
+    {:else if tab === "agents"}
+      <AgentsPane {toast} />
     {/if}
   </div>
 </div>
