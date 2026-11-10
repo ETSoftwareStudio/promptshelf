@@ -149,3 +149,42 @@ pub fn record(root: &Path, library: &str, from: &str, to: &str) -> Result<usize>
 pub fn previous_text(root: &Path, update: &Update) -> Result<String> {
     git::run(root, &["show", &format!("{}:{}", update.from, update.path)])
 }
+
+/// "Keep previous version": copies the text an update replaced into Personal.
+/// `id` is `library/id` or a bare ID.
+pub fn keep_previous(shelf: &crate::Shelf, id: &str) -> Result<crate::write::Copied> {
+    let update = load()
+        .into_iter()
+        .find(|u| format!("{}/{}", u.library, u.id) == id || u.id == id)
+        .ok_or_else(|| Error::NotFound(format!("no Inbox update for {id}")))?;
+    if update.change == Change::Added {
+        return Err(Error::Invalid(format!(
+            "{id} is new; it has no previous version"
+        )));
+    }
+    let lib = shelf.library(&update.library)?;
+    let text = previous_text(&lib.root, &update)?;
+    let source = format!(
+        "{}/{}@{}",
+        update.library,
+        update.id,
+        &update.from[..update.from.len().min(7)]
+    );
+    crate::write::copy_to_personal(shelf, &text, &source, &update.id)
+}
+
+/// What an update changed in the file, as a unified diff.
+pub fn diff(root: &Path, update: &Update) -> Result<String> {
+    git::run(
+        root,
+        &[
+            "diff",
+            "--no-color",
+            "--no-ext-diff",
+            &update.from,
+            &update.to,
+            "--",
+            &update.path,
+        ],
+    )
+}

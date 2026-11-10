@@ -49,3 +49,50 @@ fn quotes_yaml_when_needed() {
     assert_eq!(yaml_string("1.5"), "\"1.5\"");
     assert_eq!(yaml_string("a: b"), "\"a: b\"");
 }
+
+fn shelf(root: &Path) -> Shelf {
+    let config = crate::Config {
+        libraries: vec![library(root).config],
+        agents: Default::default(),
+    };
+    Shelf::load_main(config)
+}
+
+#[test]
+fn copies_into_personal_with_forked_from() {
+    let dir = tempfile::tempdir().unwrap();
+    init_library(dir.path()).unwrap();
+    std::fs::write(
+        dir.path().join("templates/review.md"),
+        "---\nid: review\nforked_from: old\ntitle: Review\n---\nBody\n",
+    )
+    .unwrap();
+    let s = shelf(dir.path());
+    let c = copy_prompt(&s, "review").unwrap();
+    assert_eq!(c.id, "personal/review-2");
+    assert_eq!(c.forked_from, "personal/review");
+    let text = std::fs::read_to_string(&c.path).unwrap();
+    assert_eq!(
+        text,
+        "---\nid: review-2\nforked_from: personal/review\ntitle: Review\n---\nBody\n"
+    );
+}
+
+#[test]
+fn create_in_a_commit_library_writes_to_the_folder() {
+    let dir = tempfile::tempdir().unwrap();
+    init_library(dir.path()).unwrap();
+    let lib = library(dir.path());
+    let (id, path) = create_in(
+        &lib,
+        &NewPrompt {
+            title: "Notes",
+            kind: Kind::Snippet,
+            body: "B",
+            tags: &[],
+        },
+    )
+    .unwrap();
+    assert_eq!(id, "notes");
+    assert!(path.starts_with(dir.path().join("snippets")));
+}

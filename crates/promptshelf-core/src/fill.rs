@@ -98,3 +98,16 @@ pub fn commands(shelf: &Shelf, prompt: &Prompt) -> Result<Vec<(String, String)>>
         })
         .collect())
 }
+
+/// Allows the shell commands of a prompt and its includes, for a prompt from
+/// a library you do not trust. Only a person does this; nothing calls it on
+/// its own. Returns each command with the prompt that declares it.
+pub fn allow(shelf: &Shelf, prompt: &Prompt) -> Result<Vec<(String, String)>> {
+    let commands = commands(shelf, prompt)?;
+    let mut allowed = Allowed::load()?;
+    for (owner, cmd) in &commands {
+        allowed.allow(owner, cmd);
+    }
+    allowed.save()?;
+    Ok(commands)
+}

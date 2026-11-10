@@ -246,6 +246,42 @@ pub fn send(lib: &Library, p: &mut Proposal, title: &str, body: &str) -> Result<
     put(p)
 }
 
+/// The pull request title and body when you give none: "Edit <id>" or
+/// "Add <id>".
+pub fn default_text(lib: &Library, p: &Proposal) -> (String, String) {
+    let verb = if lib.get(&p.id).is_some_and(|x| !x.proposal) || in_main(lib, p) {
+        "Edit"
+    } else {
+        "Add"
+    };
+    (
+        format!("{verb} {}", p.id),
+        format!("Proposed with PromptShelf: `{}`.", p.full_id()),
+    )
+}
+
+/// True when the team's main folder has the prompt's file.
+fn in_main(lib: &Library, p: &Proposal) -> bool {
+    FOLDERS
+        .iter()
+        .any(|(f, _)| lib.root.join(f).join(format!("{}.md", p.id)).exists())
+}
+
+/// Withdraws a proposal: closes its pull request when `gh` can, and removes
+/// your version, its branch and its worktree.
+pub fn withdraw(lib: &Library, p: &Proposal) -> Result<()> {
+    if let Some(number) = p.sent.as_ref().and_then(|s| s.number) {
+        let remote = git::run(&lib.root, &["remote", "get-url", "origin"])?;
+        if let Some(repo) = forge::repo_path(remote.trim()) {
+            let _ = crate::tools::command("gh")
+                .args(["pr", "close", &number.to_string(), "--repo", &repo])
+                .stdin(std::process::Stdio::null())
+                .output();
+        }
+    }
+    discard(lib, p)
+}
+
 #[path = "proposals_check.rs"]
 mod check;
 pub use check::{Outcome, check, discard};
