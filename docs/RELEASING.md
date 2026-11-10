@@ -18,6 +18,9 @@ Releases use [release-please](https://github.com/googleapis/release-please). Com
 | `feat!:` or `BREAKING CHANGE:` | minor (major after 1.0) |
 | `build:`, `ci:`, `docs:`, `chore:`, `test:` | none |
 
+## The first release
+`release-please-config.json` has `"release-as": "0.1.0"`, because release-please would start at 1.0.0. Remove that line after v0.1.0 is released, or every release stays 0.1.0.
+
 ## Where the version lives
 release-please updates every file listed in `release-please-config.json`:
 - `Cargo.toml`: the lines that end with `# x-release-please-version`.
