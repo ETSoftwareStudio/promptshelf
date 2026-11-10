@@ -34,6 +34,15 @@ shelf skill install                 # teach Claude Code the commands
 
 Every command takes `--json`. Agents with no terminal can read, fill and save drafts; other writes need a person.
 
+### Apps with no shell (MCP)
+`shelf mcp` serves the Model Context Protocol on stdio. Templates show up as prompts, and four tools search, show, fill and save drafts. For Claude Desktop, add this to `claude_desktop_config.json`:
+
+```json
+{ "mcpServers": { "promptshelf": { "command": "shelf", "args": ["mcp"] } } }
+```
+
+It runs only while the app runs: no daemon and no network port.
+
 ## Build
 ```sh
 cargo build
