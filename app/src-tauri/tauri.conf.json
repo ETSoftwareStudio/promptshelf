@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PromptShelf",
+  "version": "0.0.0",
+  "identifier": "studio.etsoftware.promptshelf",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "vp dev",
+    "beforeBuildCommand": "vp build"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "library",
+        "title": "PromptShelf",
+        "url": "index.html",
+        "width": 1060,
+        "height": 680,
+        "minWidth": 760,
+        "minHeight": 440,
+        "center": true
+      },
+      {
+        "label": "panel",
+        "title": "PromptShelf",
+        "url": "panel.html",
+        "width": 380,
+        "height": 500,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": true
+      },
+      {
+        "label": "settings",
+        "title": "Settings",
+        "url": "settings.html",
+        "width": 580,
+        "height": 560,
+        "visible": false,
+        "resizable": false,
+        "minimizable": false,
+        "maximizable": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "shortDescription": "A local-first prompt library",
+    "license": "MIT",
+    "copyright": "© ET Software Studio Inc.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

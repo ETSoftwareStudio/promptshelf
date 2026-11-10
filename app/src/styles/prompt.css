@@ -1,0 +1,94 @@
+/* The prompt as a sentence, values tinted by source, and its footnotes. */
+.prose {
+  font-family: var(--font-prompt);
+  font-size: 15.5px;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+.v {
+  border-radius: 3px;
+  padding: 1px 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.v.c {
+  background: var(--c-bg);
+  color: var(--c-ink);
+}
+.v.g {
+  background: var(--g-bg);
+  color: var(--g-ink);
+}
+.v.y {
+  background: var(--y-bg);
+  color: var(--y-ink);
+}
+.v.ask {
+  white-space: nowrap;
+  outline: 1px dashed var(--ink2);
+  outline-offset: -1px;
+  padding: 1px 7px;
+  color: var(--ink2);
+}
+.v.ask.c {
+  background: none;
+  outline-color: var(--c);
+  color: var(--c-ink);
+}
+.prose sup {
+  font: 600 10px var(--font-ui);
+  margin-left: 1px;
+}
+sup.c {
+  color: var(--c);
+}
+sup.g {
+  color: var(--g);
+}
+sup.y,
+sup.ask {
+  color: var(--link);
+}
+
+/* Footnotes: one numbered row per value. */
+.notes {
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid var(--rule);
+  font-size: 11.5px;
+  color: var(--ink2);
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 6px 8px;
+  align-items: start;
+}
+.notes b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.nn {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--chip-ink);
+}
+.nn.c {
+  background: var(--c);
+}
+.nn.g {
+  background: var(--g);
+}
+.nn.y,
+.nn.ask {
+  background: var(--link);
+}

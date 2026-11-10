@@ -1,0 +1,100 @@
+/* PromptShelf colour tokens. OKLCH is the source of truth; neutrals are tinted
+   toward hue 265. The theme follows the system. */
+@import "./prompt-font.css";
+
+:root {
+  color-scheme: light dark;
+
+  --font-ui:
+    -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, "Cantarell",
+    "Noto Sans", "Ubuntu", sans-serif;
+  --font-mono:
+    "SF Mono", ui-monospace, "Cascadia Mono", Consolas, "DejaVu Sans Mono", Menlo, monospace;
+
+  --ground: oklch(99.4% 0.002 265);
+  --side: oklch(95.6% 0.01 265);
+  --side-sel: oklch(89.5% 0.022 255);
+  --ink: oklch(22% 0.014 265);
+  --ink2: oklch(47% 0.014 265);
+  --ink3: oklch(55% 0.012 265);
+  --edge: oklch(20% 0.02 265 / 0.16);
+  --rule: oklch(91% 0.006 265);
+  --btn: oklch(99.5% 0 0);
+  --accent: oklch(47% 0.15 255);
+  --on-accent: oklch(99% 0.005 255);
+  --on-accent-dim: oklch(92% 0.03 255);
+  --link: oklch(47% 0.15 255);
+  --badge: oklch(47% 0.15 255);
+  --focus: oklch(60% 0.15 255 / 0.55);
+
+  /* Source colours: rose = conversation, green = repo, files, commands. */
+  --c: oklch(52% 0.17 355);
+  --c-bg: oklch(94% 0.04 355);
+  --c-ink: oklch(36% 0.12 355);
+  --g: oklch(48% 0.11 158);
+  --g-bg: oklch(93% 0.05 158);
+  --g-ink: oklch(31% 0.08 158);
+  /* A value you gave, a default, or the last value: a quiet neutral. */
+  --y: oklch(47% 0.15 255);
+  --y-bg: oklch(94.5% 0.012 255);
+  --y-ink: oklch(30% 0.04 255);
+  --chip-ink: oklch(99% 0 0);
+
+  --ok: oklch(50% 0.12 155);
+  --warn: oklch(55% 0.14 65);
+  --warn-bg: oklch(95.5% 0.05 80);
+  --warn-ink: oklch(35% 0.08 65);
+  --group: oklch(97.2% 0.005 265);
+  --pin: oklch(56% 0.17 35);
+  --tog: oklch(47% 0.15 255);
+  --seg: oklch(93% 0.006 265);
+  --dim: oklch(20% 0.02 265 / 0.18);
+  --sheet: oklch(99.6% 0.002 265);
+  --bubble: oklch(94% 0.03 255);
+  --shadow: oklch(12% 0.02 260 / 0.5);
+  --field: oklch(99.5% 0 0);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: oklch(19.5% 0.008 265);
+    --side: oklch(24% 0.012 265);
+    --side-sel: oklch(31% 0.03 255);
+    --ink: oklch(94% 0.006 265);
+    --ink2: oklch(72% 0.012 265);
+    --ink3: oklch(66% 0.012 265);
+    --edge: oklch(100% 0 0 / 0.12);
+    --rule: oklch(29% 0.01 265);
+    --btn: oklch(30% 0.01 265);
+    --accent: oklch(51% 0.16 255);
+    --on-accent: oklch(99% 0.005 255);
+    --link: oklch(78% 0.1 255);
+    --badge: oklch(58% 0.15 255);
+    --focus: oklch(70% 0.13 255 / 0.6);
+
+    --c: oklch(76% 0.13 355);
+    --c-bg: oklch(66% 0.14 355 / 0.24);
+    --c-ink: oklch(92% 0.05 355);
+    --g: oklch(76% 0.12 158);
+    --g-bg: oklch(68% 0.12 158 / 0.22);
+    --g-ink: oklch(91% 0.07 158);
+    --y: oklch(78% 0.1 255);
+    --y-bg: oklch(62% 0.06 255 / 0.22);
+    --y-ink: oklch(92% 0.03 255);
+    --chip-ink: oklch(18% 0.01 265);
+
+    --ok: oklch(76% 0.13 155);
+    --warn: oklch(80% 0.13 75);
+    --warn-bg: oklch(75% 0.13 75 / 0.14);
+    --warn-ink: oklch(90% 0.08 80);
+    --group: oklch(23.5% 0.009 265);
+    --pin: oklch(74% 0.14 45);
+    --tog: oklch(58% 0.15 255);
+    --seg: oklch(27% 0.01 265);
+    --dim: oklch(5% 0.01 265 / 0.45);
+    --sheet: oklch(25% 0.01 265);
+    --bubble: oklch(33% 0.05 255);
+    --shadow: oklch(5% 0.02 260 / 0.7);
+    --field: oklch(26% 0.01 265);
+  }
+}

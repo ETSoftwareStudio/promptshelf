@@ -1,0 +1,35 @@
+# cargo-deny for the desktop app: the root deny.toml rules, plus the few
+# exceptions Tauri 2 itself needs. Run from app/src-tauri: cargo deny check.
+
+[graph]
+all-features = true
+
+[licenses]
+allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib"]
+confidence-threshold = 0.9
+unused-allowed-license = "allow"
+# Tauri depends on these crates; no Tauri 2 app can drop them. MPL-2.0 is a
+# file-level licence: the crates stay unmodified and their source is on
+# crates.io, so the app itself stays MIT. Each exception names one crate,
+# so a new MPL dependency still fails the check.
+exceptions = [
+  { crate = "cssparser", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "cssparser-macros", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "dtoa-short", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "selectors", allow = ["MPL-2.0"] }, # tauri-utils → dom_query
+  { crate = "option-ext", allow = ["MPL-2.0"] }, # tauri → dirs
+  # Build-time only, on Linux (system-deps). A permissive Apache variant.
+  { crate = "target-lexicon", allow = ["Apache-2.0 WITH LLVM-exception"] },
+]
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[advisories]
+yanked = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

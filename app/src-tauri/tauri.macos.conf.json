@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "label": "library",
+        "title": "PromptShelf",
+        "url": "index.html",
+        "width": 1060,
+        "height": 680,
+        "minWidth": 760,
+        "minHeight": 440,
+        "center": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 22,
+          "y": 26
+        },
+        "transparent": true,
+        "windowEffects": {
+          "effects": ["sidebar"],
+          "state": "followsWindowActiveState"
+        }
+      },
+      {
+        "label": "panel",
+        "title": "PromptShelf",
+        "url": "panel.html",
+        "width": 380,
+        "height": 500,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": true,
+        "transparent": true,
+        "windowEffects": {
+          "effects": ["popover"],
+          "state": "active",
+          "radius": 12
+        }
+      },
+      {
+        "label": "settings",
+        "title": "Settings",
+        "url": "settings.html",
+        "width": 580,
+        "height": 560,
+        "visible": false,
+        "resizable": false,
+        "minimizable": false,
+        "maximizable": false
+      }
+    ]
+  }
+}

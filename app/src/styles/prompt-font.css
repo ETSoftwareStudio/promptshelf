@@ -1,0 +1,6 @@
+/* The serif for prompt text. It is not final: to try another one, put its
+   folder next to src/fonts/source-serif-4 and change these two lines. */
+@import "../fonts/source-serif-4/font.css";
+:root {
+  --font-prompt: "Source Serif 4", ui-serif, Georgia, serif;
+}
