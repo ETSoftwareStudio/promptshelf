@@ -30,6 +30,11 @@
   let busy = $state(false);
   let error = $state<string | null>(null);
 
+  /** True while one of the sheets is open. */
+  export function isOpen(): boolean {
+    return open !== null;
+  }
+
   /** Starts an action. Copy and Allow run at once; the rest open a sheet. */
   export function run(action: Action) {
     error = null;
