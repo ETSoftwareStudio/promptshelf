@@ -5,8 +5,10 @@
 
 pub mod error;
 pub mod fsutil;
+pub mod prompt;
 
 pub use error::{Error, Result};
+pub use prompt::{Kind, Prompt, VarSpec};
 
 /// The version of this crate, from `Cargo.toml`.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
