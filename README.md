@@ -7,7 +7,7 @@ A local-first library to save, template, reuse and share prompts. Prompts are Ma
 ## Planned
 - **`shelf` CLI** — Search, show and fill prompts. Every command has `--json` output for agents.
 - **Terminal app** — Run `shelf` with no arguments.
-- **Desktop app** — macOS, Windows and Linux, with a tray panel for quick access.
+- **Desktop app** — macOS, Windows and Linux, with a tray panel for quick access. Everything works from the app: set up, add team libraries, sync, propose changes and connect agents, with no terminal.
 - **Sync and sharing** — Plain git. No server, no account, no telemetry.
 
 ## Install
