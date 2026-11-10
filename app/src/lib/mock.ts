@@ -2,6 +2,8 @@
 // looked at without Tauri. Only dev builds load it. Every name is made up.
 
 import { PINS, PROMPTS, RESOLVED, type MockPrompt } from "./mock-data";
+import { callMore } from "./mock-more";
+import { state, sync } from "./mock-state";
 import type {
   Detail,
   FillView,
@@ -34,6 +36,7 @@ function summary(p: MockPrompt): Summary {
     pin: pos >= 0 ? pos + 1 : null,
     uses: p.uses,
     lastUsed: p.lastUsed,
+    proposal: state.proposals.some((x) => x.fullId === fullId(p)),
   };
 }
 
@@ -108,54 +111,63 @@ function list(q: Query): Summary[] {
 
 function overview(): Overview {
   const kinds = new Map<Kind, number>();
-  for (const p of PROMPTS) kinds.set(p.kind, (kinds.get(p.kind) ?? 0) + 1);
+  const shown = PROMPTS.filter((p) => state.libraries.some((l) => l.name === p.library));
+  for (const p of shown) kinds.set(p.kind, (kinds.get(p.kind) ?? 0) + 1);
   return {
     configPath: "~/.config/promptshelf/config.toml",
-    hasConfig: !location.hash.includes("firstrun"),
+    hasConfig: state.configured,
     personal: "personal",
-    libraries: [
-      {
-        name: "personal",
-        path: "~/Prompts/personal",
-        remote: "git@example.com:you/prompts.git",
-        writes: "commit",
-        personal: true,
-        trusted: true,
-        git: true,
-        exists: true,
-        count: PROMPTS.filter((p) => p.library === "personal").length,
-      },
-      {
-        name: "acme-eng",
-        path: "~/Prompts/acme-eng",
-        remote: "git@example.com:acme/prompts.git",
-        writes: "pull-request",
-        personal: false,
-        trusted: false,
-        git: true,
-        exists: true,
-        count: PROMPTS.filter((p) => p.library === "acme-eng").length,
-      },
-    ],
+    libraries: state.libraries.map((l) => ({
+      ...l,
+      count: shown.filter((p) => p.library === l.name).length,
+      lastSync: state.lastSync[l.name] ?? null,
+    })),
     kinds: [...kinds].map(([kind, count]) => ({ kind, count })),
-    total: PROMPTS.length,
+    total: shown.length,
     pins: pins.map((id, i) => ({
       fullId: id,
       title: find(id)?.title ?? id,
       position: i + 1,
       exists: Boolean(find(id)),
     })),
-    diagnostics: [],
+    diagnostics: location.hash.includes("problems")
+      ? [
+          {
+            path: "~/Prompts/personal/templates/broken.md",
+            message: "did not find expected node content at line 2 column 7",
+            library: "personal",
+            file: "templates/broken.md",
+            help: "The block between the --- lines is not valid YAML. Edit the file to fix it.",
+          },
+        ]
+      : [],
+    updates: state.updates.length,
+    proposals: state.proposals.length,
+    syncProblems: Object.entries(state.lastSync)
+      .filter(([, x]) => x.error || x.conflicts.length)
+      .map(([name]) => name),
   };
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Commands of the mock that return nothing. */
+const NO_RESULT = new Set([
+  "update_library",
+  "withdraw_proposal",
+  "dismiss_update",
+  "delete_prompt",
+  "save_file",
+  "open_url",
+]);
 
 let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/payments" };
 
 export async function call(cmd: string, a: Record<string, unknown>): Promise<unknown> {
   const id = a.id as string;
   const p = id ? find(id) : undefined;
+  const more = await callMore(cmd, a);
+  if (more !== undefined || NO_RESULT.has(cmd)) return more;
   if (id && !p && cmd !== "unpin_prompt") throw new Error(`no prompt with the ID "${id}"`);
   switch (cmd) {
     case "overview":
@@ -171,6 +183,11 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
         body: p!.body,
         vars: p!.vars,
         file: file(p!),
+        writes: state.libraries.find((l) => l.name === p!.library)?.writes ?? "commit",
+        proposalInfo: state.proposals.find((x) => x.fullId === fullId(p!)) ?? null,
+        blocked: state.updates
+          .filter((u) => u.fullId === fullId(p!))
+          .flatMap((u) => (u.new_commands ?? []).filter((c) => !u.allowed.includes(c))),
       } satisfies Detail;
     case "fill_prompt": {
       await wait(250);
@@ -232,18 +249,7 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
     }
     case "sync_libraries":
       await wait(600);
-      return [
-        {
-          library: "personal",
-          pulled: 1,
-          pushed: 2,
-          changes: 0,
-          committed: "Edit strict-pr-review",
-        },
-        { library: "acme-eng", pulled: 0, pushed: 0, changes: 0 },
-      ] satisfies SyncReport[];
-    case "init_personal":
-      return "~/Prompts/personal";
+      return sync(a.library as string | null) satisfies SyncReport[];
     case "get_settings":
     case "set_settings":
       if (cmd === "set_settings") settings = a.settings as typeof settings;

@@ -3,6 +3,8 @@
   import { libraryLabel, shortDay } from "../lib/format";
   import type { Summary } from "../lib/types";
   import Icon from "./Icon.svelte";
+  import { flip } from "svelte/animate";
+  import { grow, moveParams } from "../lib/motion";
 
   let {
     title,
@@ -84,13 +86,14 @@
       <button
         class="row"
         class:on={s.fullId === selected}
+        animate:flip={moveParams()}
         role="option"
         aria-selected={s.fullId === selected}
         onclick={() => onselect(s.fullId)}
         ondblclick={onopen}
       >
         <span class="t">
-          {#if s.pin}<Icon name="pin" small />{/if}
+          {#if s.pin}<span class="pin" transition:grow><Icon name="pin" small /></span>{/if}
           <span>{s.title}</span>
         </span>
         <span class="w">{shortDay(s.lastUsed)}</span>
@@ -159,8 +162,13 @@
     overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 5px;
     min-width: 0;
+  }
+  .t .pin {
+    display: inline-flex;
+    flex: none;
+    margin-right: 5px;
+    overflow: visible;
   }
   .t span {
     overflow: hidden;

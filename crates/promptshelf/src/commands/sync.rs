@@ -3,7 +3,6 @@
 use std::path::{Path, PathBuf};
 
 use promptshelf_core::pins::{self, Pins};
-use promptshelf_core::state::Allowed;
 use promptshelf_core::sync::{self as core_sync, Options};
 use promptshelf_core::{Error, Result, Shelf, fill};
 use serde_json::json;
@@ -169,12 +168,7 @@ pub(super) fn allow(ctx: &Ctx, a: IdArgs) -> Result<u8> {
     }
     let shelf = load()?;
     let p = shelf.resolve(&a.id)?;
-    let commands = fill::commands(&shelf, p)?;
-    let mut allowed = Allowed::load()?;
-    for (owner, cmd) in &commands {
-        allowed.allow(owner, cmd);
-    }
-    allowed.save()?;
+    let commands = fill::allow(&shelf, p)?;
     if ctx.json {
         let list: Vec<_> = commands
             .iter()

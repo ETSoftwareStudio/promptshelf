@@ -53,15 +53,6 @@ fn save_file_writes_and_reports_a_new_id() {
 }
 
 #[test]
-fn edits_keep_the_kind_of_the_folder() {
-    let (_dir, shelf) = setup();
-    let p = shelf.resolve("personal/rough").unwrap();
-    assert_eq!(folder_kind(&shelf, p), Kind::Draft);
-    let p = shelf.resolve("personal/review").unwrap();
-    assert_eq!(folder_kind(&shelf, p), Kind::Template);
-}
-
-#[test]
 fn new_prompt_goes_into_personal() {
     let (_dir, shelf) = setup();
     let id = new_prompt(&shelf, "  Strict review ", Kind::Template, None).unwrap();

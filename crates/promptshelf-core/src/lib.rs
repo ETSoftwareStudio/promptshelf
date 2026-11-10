@@ -3,7 +3,9 @@
 //! This crate owns the prompt files, templates, libraries and sync. Every
 //! surface uses it: the `shelf` CLI, the terminal app and the desktop app.
 
+pub mod agents;
 pub mod config;
+pub mod edit;
 pub mod error;
 pub mod fill;
 pub mod forge;
@@ -14,10 +16,12 @@ pub mod pins;
 pub mod prompt;
 pub mod proposals;
 pub mod resolve;
+pub mod setup;
 pub mod shelf;
 pub mod state;
 pub mod sync;
 pub mod template;
+pub mod tools;
 pub mod write;
 
 pub use config::Config;

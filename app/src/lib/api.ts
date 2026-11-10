@@ -4,7 +4,17 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type {
+  AgentsView,
+  Copied,
   Detail,
+  Environment,
+  InboxView,
+  LibraryStatus,
+  McpSetup,
+  NewLibrary,
+  ProposalView,
+  Resolution,
+  Writes,
   FillView,
   Kind,
   Overview,
@@ -46,16 +56,67 @@ export const api = {
     call<string>("new_prompt", { title, kind, library: library ?? null }),
   sync: (library?: string | null) =>
     call<SyncReport[]>("sync_libraries", { library: library ?? null }),
-  initPersonal: () => call<string>("init_personal"),
+  /** First run: a folder for Personal, and a repo to clone into it. */
+  initPersonal: (path?: string | null, url?: string | null) =>
+    call<string>("init_personal", { path: path ?? null, url: url ?? null }),
+  pickFolder: (title: string, start?: string | null) =>
+    call<string | null>("pick_folder", { title, start: start ?? null }),
+  environment: () => call<Environment>("environment"),
+  setGitIdentity: (name: string, email: string) =>
+    call<Environment>("set_git_identity", { name, email }),
+  libraryStatus: () => call<LibraryStatus[]>("library_status"),
+  addLibrary: (library: NewLibrary) => call<string>("add_library", { library }),
+  updateLibrary: (name: string, writes?: Writes | null, trusted?: boolean | null) =>
+    call<void>("update_library", { name, writes: writes ?? null, trusted: trusted ?? null }),
+  removeLibrary: (name: string) => call<string>("remove_library", { name }),
+  connectRemote: (name: string, url: string) => call<SyncReport>("connect_remote", { name, url }),
+  createGithubRepo: (name: string, repo: string) =>
+    call<SyncReport>("create_github_repo", { name, repo }),
+  resolveConflict: (library: string, how: Resolution) =>
+    call<SyncReport>("resolve_conflict", { library, how }),
+  agents: () => call<AgentsView>("agents_status"),
+  installSkill: () => call<string>("install_skill"),
+  installCommand: () => call<{ path: string; profile?: string | null }>("install_command"),
+  addToClaudeDesktop: () => call<McpSetup>("add_to_claude_desktop"),
+  deletePrompt: (id: string) => call<void>("delete_prompt", { id }),
+  renamePrompt: (id: string, title: string, newId: string) =>
+    call<string>("rename_prompt", { id, title, newId }),
+  movePrompt: (id: string, library: string, kind: Kind) =>
+    call<string>("move_prompt", { id, library, kind }),
+  copyPrompt: (id: string) => call<Copied>("copy_prompt", { id }),
+  readFile: (path: string) => call<string>("read_file", { path }),
+  saveRawFile: (path: string, text: string) => call<void>("save_file", { path, text }),
+  proposals: (refresh = false) => call<ProposalView[]>("list_proposals", { refresh }),
+  proposalText: (id: string) => call<{ title: string; body: string }>("proposal_text", { id }),
+  propose: (id: string, title: string, body: string) =>
+    call<ProposalView>("propose", { id, title, body }),
+  withdraw: (id: string) => call<void>("withdraw_proposal", { id }),
+  inbox: () => call<InboxView>("get_inbox"),
+  updateDiff: (id: string) => call<string>("update_diff", { id }),
+  allowCommands: (id: string) => call<string[]>("allow_commands", { id }),
+  keepPrevious: (id: string) => call<Copied>("keep_previous", { id }),
+  dismissUpdate: (id: string) => call<void>("dismiss_update", { id }),
   getSettings: () => call<SettingsView>("get_settings"),
   setSettings: (settings: Settings) => call<SettingsView>("set_settings", { settings }),
-  openWindow: (name: "library" | "settings" | "panel") => call<void>("open_window", { name }),
+  openWindow: (name: "library" | "settings" | "panel", tab?: "libraries" | "agents") =>
+    call<void>("open_window", { name, tab: tab ?? null }),
   hidePanel: () => call<void>("hide_panel"),
 };
 
+/** Opens a web page in the system browser. */
+export function openLink(url: string): void {
+  if (inTauri) void call("open_url", { url });
+  else window.open(url, "_blank", "noopener");
+}
+
 /** Listens to an event from the Tauri side. Returns a function that stops. */
 export function onEvent<T>(name: string, cb: (payload: T) => void): () => void {
-  if (!inTauri) return () => {};
+  if (!inTauri) {
+    // The browser mock sends its events on the window.
+    const handler = (e: Event) => cb((e as CustomEvent<T>).detail);
+    window.addEventListener(`mock:${name}`, handler);
+    return () => window.removeEventListener(`mock:${name}`, handler);
+  }
   let stop: (() => void) | undefined;
   let stopped = false;
   void listen<T>(name, (e) => cb(e.payload)).then((un) => {

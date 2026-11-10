@@ -2,13 +2,15 @@
 //! and windows.
 
 use promptshelf_core::sync::Report;
-use promptshelf_core::{Config, Kind};
+use promptshelf_core::{Config, Kind, tools};
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use super::{AppState, CmdResult, blocking, msg};
+use crate::manage;
 use crate::paste;
 use crate::settings::Settings;
+use crate::views::{LastSync, SyncView};
 use crate::windows;
 use crate::writes;
 
@@ -60,24 +62,58 @@ pub async fn new_prompt(
     result
 }
 
+/// Keeps the outcome of each sync for the sidebar and Settings, and adds
+/// plain words to its error.
+pub(crate) fn record_syncs(state: &AppState, reports: Vec<Report>) -> Vec<SyncView> {
+    let at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let mut last = state.last_sync.lock().expect("sync lock");
+    reports
+        .into_iter()
+        .map(|report| {
+            let hint = report.error.as_deref().and_then(tools::explain);
+            last.insert(
+                report.library.clone(),
+                LastSync {
+                    at,
+                    error: report.error.clone(),
+                    hint,
+                    conflicts: report.conflicts.clone(),
+                },
+            );
+            SyncView { report, hint }
+        })
+        .collect()
+}
+
 #[tauri::command]
 pub async fn sync_libraries(
     state: State<'_, AppState>,
     library: Option<String>,
-) -> CmdResult<Vec<Report>> {
+) -> CmdResult<Vec<SyncView>> {
     let shelf = state.shelf().map_err(msg)?;
     let reports = blocking(move || {
-        writes::sync(&shelf, library.as_deref(), &writes::merge_driver()).map_err(msg)
+        writes::sync(&shelf, library.as_deref(), &manage::merge_driver()).map_err(msg)
     })
     .await;
     state.invalidate();
-    reports
+    Ok(record_syncs(&state, reports?))
 }
 
-/// First run: creates a Personal library, like `shelf init`.
+/// First run: makes a folder the Personal library, like `shelf init`. With
+/// `url`, clones that repo into the folder first.
 #[tauri::command]
-pub async fn init_personal(state: State<'_, AppState>) -> CmdResult<String> {
-    let result = blocking(|| writes::init("~/Prompts/personal").map_err(msg)).await;
+pub async fn init_personal(
+    state: State<'_, AppState>,
+    path: Option<String>,
+    url: Option<String>,
+) -> CmdResult<String> {
+    let result = blocking(move || {
+        manage::init(path.as_deref().unwrap_or_default(), url.as_deref()).map_err(msg)
+    })
+    .await;
     state.invalidate();
     result
 }
@@ -129,12 +165,18 @@ pub async fn set_settings(
     Ok(settings_view(&state))
 }
 
-/// Opens one of the app's windows: "library", "settings" or "panel".
+/// Opens one of the app's windows: "library", "settings" or "panel". For
+/// Settings, `tab` picks the tab.
 #[tauri::command]
-pub async fn open_window(app: AppHandle, name: String) -> CmdResult<()> {
+pub async fn open_window(app: AppHandle, name: String, tab: Option<String>) -> CmdResult<()> {
     match name.as_str() {
         "library" => windows::show_library(&app),
-        "settings" => windows::show_settings(&app),
+        "settings" => {
+            windows::show_settings(&app);
+            if let Some(tab) = tab {
+                let _ = app.emit("settings-tab", tab);
+            }
+        }
         "panel" => windows::show_panel(&app, None),
         other => return Err(format!("no window named {other}")),
     }
@@ -147,4 +189,24 @@ pub async fn hide_panel(app: AppHandle) -> CmdResult<()> {
         w.hide().map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+/// Opens a web page in the system browser: pull requests and help pages.
+#[tauri::command]
+pub async fn open_url(url: String) -> CmdResult<()> {
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err(format!("{url} is not a web address"));
+    }
+    let program = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(windows) {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    std::process::Command::new(program)
+        .arg(&url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("could not open {url}: {e}"))
 }

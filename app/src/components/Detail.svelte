@@ -1,29 +1,40 @@
 <!-- The right column: one prompt as a sentence with footnotes, or its file in
      the editor. -->
+<script lang="ts" module>
+  /** What the person asked for in the menu or a banner. */
+  export type Action = "rename" | "delete" | "copy" | "move" | "propose" | "withdraw" | "allow";
+</script>
+
 <script lang="ts">
-  import { api, errorText } from "../lib/api";
+  import { api, errorText, openLink } from "../lib/api";
   import type { Filler } from "../lib/filler.svelte";
-  import { usedTimes } from "../lib/format";
+  import { libraryLabel, proposalLabel, usedTimes } from "../lib/format";
   import { modKey } from "../lib/hotkey";
   import type { Detail } from "../lib/types";
   import Editor from "./Editor.svelte";
   import FilledPrompt from "./FilledPrompt.svelte";
   import Icon from "./Icon.svelte";
+  import Menu, { type MenuItem } from "./Menu.svelte";
 
   let {
     detail,
     filler,
+    personal = null,
     editing = $bindable(false),
     onpin,
     onsend,
     onsaved,
+    onaction,
   }: {
     detail: Detail;
     filler: Filler;
+    /** The Personal library's name. */
+    personal?: string | null;
     editing?: boolean;
     onpin: () => void;
     onsend: () => void;
     onsaved: (fullId: string) => void;
+    onaction?: (action: Action) => void;
   } = $props();
 
   let text = $state("");
@@ -50,6 +61,19 @@
   }
 
   const kindLabel = $derived(detail.kind === "draft" ? "draft in the Inbox" : detail.kind);
+  const team = $derived(detail.writes === "pull-request");
+  const prop = $derived(detail.proposalInfo);
+  const label = $derived(prop ? proposalLabel(prop) : null);
+  const items = $derived.by(() => {
+    const out: MenuItem[] = [];
+    const act = (a: Action) => () => onaction?.(a);
+    if (detail.kind === "draft") out.push({ label: "Move to Library…", run: act("move") });
+    if (!team) out.push({ label: "Rename…", run: act("rename") });
+    if (detail.library !== personal) out.push({ label: "Copy to Personal", run: act("copy") });
+    if (prop) out.push({ label: "Withdraw Proposal…", run: act("withdraw"), danger: true, rule: true });
+    if (!team) out.push({ label: "Delete…", run: act("delete"), danger: true, rule: true });
+    return out;
+  });
 </script>
 
 <section class="detail">
@@ -67,13 +91,14 @@
     <button
       class="btn icon"
       class:pressed={editing}
-      title="Edit the Markdown file"
+      title={team ? "Edit your version (a proposal)" : "Edit the Markdown file"}
       aria-label="Edit"
       aria-pressed={editing}
       onclick={() => (editing ? (editing = false) : edit())}
     >
       <Icon name="edit" />
     </button>
+    {#if items.length}<Menu {items} label="More actions" />{/if}
     <button class="btn primary" onclick={onsend} disabled={editing} title="Send ({modKey('↩')})">
       <Icon name="send" />Send
     </button>
@@ -82,9 +107,56 @@
   <div class="body" class:editing>
     <h2>{detail.title}</h2>
     <div class="meta">
-      <code>{detail.fullId}</code> · {kindLabel} · {usedTimes(detail.uses)}
+      <code>{detail.fullId}</code> · {prop ? "your version" : kindLabel} · {usedTimes(detail.uses)}
       {#if detail.tags.length}· {detail.tags.join(", ")}{/if}
+      {#if detail.forkedFrom}· copy of <code>{detail.forkedFrom}</code>{/if}
     </div>
+    {#if prop && label}
+      <div class="banner" class:info={label.tone !== "warn"}>
+        <Icon name="branch" small />
+        <div class="grow">
+          <p>
+            <span class="chip {label.tone ?? ''}">{label.chip}</span>
+            {label.text}. Your version is on this computer; the team keeps theirs until the pull
+            request is merged.
+          </p>
+          <div class="acts">
+            {#if prop.status === "not-sent" || prop.status === "not-merged"}
+              <button class="btn sm primary" onclick={() => onaction?.("propose")}>Send Proposal…</button>
+            {:else if prop.unsent}
+              <button class="btn sm primary" onclick={() => onaction?.("propose")}>Update Pull Request…</button>
+            {/if}
+            {#if prop.url}
+              <button class="btn sm" onclick={() => openLink(prop.url!)}>
+                <Icon name="link" small />{prop.number ? `Open #${prop.number}` : "Open on the Host"}
+              </button>
+            {/if}
+          </div>
+        </div>
+      </div>
+    {:else if team}
+      <div class="banner info">
+        <Icon name="branch" small />
+        <span class="grow">
+          {libraryLabel(detail.library)} is a team library. Edit makes a proposal on this computer; the
+          team's version stays until your pull request is merged.
+        </span>
+      </div>
+    {/if}
+    {#if detail.blocked.length}
+      <div class="banner" role="alert">
+        <Icon name="warn" small />
+        <div class="grow">
+          <p>
+            This prompt runs {detail.blocked.length === 1 ? "a command" : "commands"} from a library you
+            do not trust. {detail.blocked.length === 1 ? "It stays" : "They stay"} off until you allow
+            {detail.blocked.length === 1 ? "it" : "them"}:
+          </p>
+          {#each detail.blocked as c (c)}<p><code>{c}</code></p>{/each}
+          <div class="acts"><button class="btn sm" onclick={() => onaction?.("allow")}>Allow</button></div>
+        </div>
+      </div>
+    {/if}
     {#if editing}
       <Editor bind:text path={detail.path} {error} {saving} onsave={save} oncancel={() => (editing = false)} />
     {:else}

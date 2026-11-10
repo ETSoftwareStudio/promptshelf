@@ -2,11 +2,14 @@
 //! icon and a global shortcut, and Settings. The Rust side links
 //! `promptshelf-core`; the UI is Svelte in `app/src`.
 
+pub mod agents;
 mod commands;
+pub mod manage;
 mod menu;
 mod paste;
 pub mod service;
 pub mod settings;
+pub mod team;
 pub mod views;
 mod windows;
 pub mod writes;
@@ -42,6 +45,7 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             windows::show_library(app);
         }))
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
@@ -92,6 +96,36 @@ pub fn run() {
             commands::set_settings,
             commands::open_window,
             commands::hide_panel,
+            commands::open_url,
+            commands::pick_folder,
+            commands::environment,
+            commands::set_git_identity,
+            commands::library_status,
+            commands::add_library,
+            commands::update_library,
+            commands::remove_library,
+            commands::connect_remote,
+            commands::create_github_repo,
+            commands::resolve_conflict,
+            commands::agents_status,
+            commands::install_skill,
+            commands::install_command,
+            commands::add_to_claude_desktop,
+            commands::delete_prompt,
+            commands::rename_prompt,
+            commands::move_prompt,
+            commands::copy_prompt,
+            commands::read_file,
+            commands::save_file,
+            commands::list_proposals,
+            commands::proposal_text,
+            commands::propose,
+            commands::withdraw_proposal,
+            commands::get_inbox,
+            commands::update_diff,
+            commands::allow_commands,
+            commands::keep_previous,
+            commands::dismiss_update,
         ])
         .build(tauri::generate_context!())
         .expect("could not start PromptShelf");

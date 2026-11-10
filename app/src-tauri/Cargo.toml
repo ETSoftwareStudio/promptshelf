@@ -18,7 +18,10 @@ tauri-build = { version = "2.7", features = [] }
 
 [dependencies]
 promptshelf-core = { path = "../../crates/promptshelf-core" }
+# The CLI, so the app runs as `shelf` under that name.
+promptshelf = { path = "../../crates/promptshelf" }
 tauri = { version = "2.12", features = ["tray-icon", "image-png", "macos-private-api"] }
+tauri-plugin-dialog = "2.8"
 tauri-plugin-global-shortcut = "2.4"
 tauri-plugin-single-instance = "2.5"
 serde = { version = "1", features = ["derive"] }

@@ -102,3 +102,20 @@ impl Allowed {
         }
     }
 }
+
+/// Moves this machine's usage and allowed commands to a prompt's new full ID,
+/// after a rename.
+pub fn rename_prompt(old: &str, new: &str) -> Result<()> {
+    let mut log = UsageLog::load();
+    if let Some(usage) = log.prompts.remove(old) {
+        log.prompts.insert(new.to_string(), usage);
+        let bytes = serde_json::to_vec_pretty(&log).map_err(|e| Error::Invalid(e.to_string()))?;
+        fsutil::write_atomic(&UsageLog::path(), &bytes)?;
+    }
+    let mut allowed = Allowed::load()?;
+    if let Some(commands) = allowed.commands.remove(old) {
+        allowed.commands.insert(new.to_string(), commands);
+        allowed.save()?;
+    }
+    Ok(())
+}

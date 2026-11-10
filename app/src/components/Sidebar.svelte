@@ -1,5 +1,9 @@
 <!-- The sidebar: pins (⌘1 to ⌘9), prompts, kinds, libraries and sync. -->
 <script lang="ts">
+  import { flip } from "svelte/animate";
+  import { cubicOut } from "svelte/easing";
+  import { slide } from "svelte/transition";
+  import { BASE, dur, moveParams, row } from "../lib/motion";
   import { KINDS, libraryLabel } from "../lib/format";
   import { modKey } from "../lib/hotkey";
   import type { Overview } from "../lib/types";
@@ -14,6 +18,8 @@
     onnav,
     onpin,
     onsync,
+    onaddlib,
+    onsyncproblem,
   }: {
     overview: Overview;
     nav: string;
@@ -24,10 +30,15 @@
     onnav: (nav: string) => void;
     onpin: (fullId: string) => void;
     onsync: () => void;
+    onaddlib?: () => void;
+    /** The last sync of a library failed or found a conflict. */
+    onsyncproblem?: (library: string) => void;
   } = $props();
 
   const count = (kind: string) => overview.kinds.find((k) => k.kind === kind)?.count ?? 0;
-  const drafts = $derived(count("draft"));
+  const inbox = $derived(count("draft") + overview.updates);
+  const hasTeam = $derived(overview.libraries.some((l) => l.writes === "pull-request"));
+  const problem = $derived(overview.syncProblems[0] ?? null);
   const kinds = $derived(KINDS.filter((k) => k.kind === "template" || count(k.kind) > 0));
   const anyGit = $derived(overview.libraries.some((l) => l.git));
 </script>
@@ -35,9 +46,12 @@
 <aside class="side">
   <div class="drag" data-tauri-drag-region></div>
   {#if overview.pins.length}
+    <div class="pins" transition:slide={{ duration: dur(BASE), easing: cubicOut }}>
     <div class="sh first">Pinned</div>
     {#each overview.pins as pin (pin.fullId)}
       <button
+        animate:flip={moveParams()}
+        transition:row
         class="si"
         class:on={pinned === pin.fullId}
         class:gone={!pin.exists}
@@ -49,6 +63,7 @@
         <span class="n kbd">{modKey(String(pin.position))}</span>
       </button>
     {/each}
+    </div>
   {/if}
 
   <div class="sh" class:first={!overview.pins.length}>Prompts</div>
@@ -58,10 +73,22 @@
   <button class="si" class:on={nav === "recent"} onclick={() => onnav("recent")}>
     <Icon name="clock" /><span class="label">Recent</span>
   </button>
-  <button class="si" class:on={nav === "kind:draft"} onclick={() => onnav("kind:draft")}>
+  <button class="si" class:on={nav === "inbox"} onclick={() => onnav("inbox")}>
     <Icon name="tray" /><span class="label">Inbox</span>
-    {#if drafts}<span class="n"><span class="badge">{drafts}</span></span>{/if}
+    {#if inbox}<span class="n"><span class="badge">{inbox}</span></span>{/if}
   </button>
+  {#if hasTeam}
+    <button class="si" class:on={nav === "proposals"} onclick={() => onnav("proposals")}>
+      <Icon name="branch" /><span class="label">Your Proposals</span>
+      {#if overview.proposals}<span class="n">{overview.proposals}</span>{/if}
+    </button>
+  {/if}
+  {#if overview.diagnostics.length}
+    <button class="si warn" class:on={nav === "problems"} onclick={() => onnav("problems")}>
+      <Icon name="warn" /><span class="label">Files to Fix</span>
+      <span class="n">{overview.diagnostics.length}</span>
+    </button>
+  {/if}
 
   <div class="sh">Kinds</div>
   {#each kinds as k (k.kind)}
@@ -88,14 +115,27 @@
       ></span>
     </button>
   {/each}
+  {#if onaddlib}
+    <button class="si add" onclick={onaddlib}>
+      <Icon name="plus" /><span class="label">Add Library…</span>
+    </button>
+  {/if}
 
-  <button class="sync" onclick={onsync} disabled={syncing || !anyGit} title="Sync every library">
-    <span class="dot" class:off={!anyGit} class:busy={syncing}></span>
-    <span class="label">
-      {#if syncing}Syncing…{:else if !anyGit}This computer only{:else}{syncNote || "Sync now"}{/if}
-    </span>
-    {#if anyGit && !syncing}<Icon name="sync" small />{/if}
-  </button>
+  {#if problem && !syncing}
+    <button class="sync bad" onclick={() => onsyncproblem?.(problem)} title="See what the sync found">
+      <span class="dot bad"></span>
+      <span class="label">Sync needs a look</span>
+      <Icon name="warn" small />
+    </button>
+  {:else}
+    <button class="sync" onclick={onsync} disabled={syncing || !anyGit} title="Sync every library">
+      <span class="dot" class:off={!anyGit} class:busy={syncing}></span>
+      <span class="label">
+        {#if syncing}Syncing…{:else if !anyGit}This computer only{:else}{syncNote || "Sync now"}{/if}
+      </span>
+      {#if anyGit && !syncing}<Icon name="sync" small />{/if}
+    </button>
+  {/if}
 </aside>
 
 <style>
@@ -126,6 +166,9 @@
   }
   .sh.first {
     padding-top: 2px;
+  }
+  .sh {
+    transition: padding-top 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .si {
     display: flex;
@@ -217,6 +260,24 @@
   }
   .dot.off {
     background: var(--ink3);
+  }
+  .dot.bad {
+    background: var(--warn);
+  }
+  .sync.bad {
+    color: var(--warn-ink);
+  }
+  .sync.bad :global(.i) {
+    color: var(--warn);
+  }
+  .si.warn :global(.i) {
+    color: var(--warn);
+  }
+  .si.add {
+    color: var(--ink2);
+  }
+  .si.add :global(.i) {
+    color: var(--ink3);
   }
   .dot.busy {
     animation: pulse 1s ease-in-out infinite alternate;

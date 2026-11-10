@@ -1,9 +1,7 @@
 //! Setup: init, libraries and the Claude Code skill.
 
-use std::path::PathBuf;
-
-use promptshelf_core::config::{LibraryConfig, Writes, expand_tilde};
-use promptshelf_core::{Config, Error, Result, fsutil, write};
+use promptshelf_core::config::{Writes, expand_tilde};
+use promptshelf_core::{Config, Error, Result, setup};
 use serde_json::json;
 
 use super::{Ctx, load};
@@ -20,33 +18,15 @@ pub(super) fn init(ctx: &Ctx, a: InitArgs) -> Result<u8> {
     ctx.caller
         .may_write(existing.as_ref(), "Creating a library")?;
     let mut config = existing.unwrap_or_default();
-    let created = config.personal().is_none();
-    if created {
-        config.libraries.push(LibraryConfig {
-            name: "personal".into(),
-            path: a.path,
-            remote: None,
-            writes: Writes::Commit,
-            personal: true,
-            trusted: None,
-            forge: None,
-            api: None,
-        });
+    let init = setup::init_personal(&mut config, &a.path, &super::sync::driver_program())?;
+    if init.created {
         config.save()?;
     }
-    let personal = config.personal().expect("personal library exists");
-    let root = personal.root();
-    write::init_library(&root)?;
-    // Personal is a git repo from the start, so `shelf sync` can work later.
-    if !promptshelf_core::git::is_repo(&root)
-        && promptshelf_core::git::run(&root, &["init", "-q", "-b", "main"]).is_ok()
-    {
-        promptshelf_core::sync::setup_merge_driver(&root, &super::sync::driver_program())?;
-    }
+    let (created, root) = (init.created, init.root);
     if ctx.json {
         output::json(json!({
             "config": Config::path().display().to_string(),
-            "library": { "name": personal.name, "path": root.display().to_string() },
+            "library": { "name": init.name, "path": root.display().to_string() },
             "created": created,
         }));
     } else if created {
@@ -55,7 +35,7 @@ pub(super) fn init(ctx: &Ctx, a: InitArgs) -> Result<u8> {
     } else {
         println!(
             "Already set up. Personal library: {} ({})",
-            personal.name,
+            init.name,
             root.display()
         );
     }
@@ -101,10 +81,6 @@ pub(super) fn libs_list(ctx: &Ctx) -> Result<u8> {
     Ok(exit::OK)
 }
 
-pub(super) fn looks_like_git_url(s: &str) -> bool {
-    s.contains("://") || (s.contains('@') && s.contains(':')) || s.ends_with(".git")
-}
-
 pub(super) fn libs_add(ctx: &Ctx, a: LibsAddArgs) -> Result<u8> {
     let mut config = match Config::load() {
         Ok(c) => c,
@@ -112,86 +88,28 @@ pub(super) fn libs_add(ctx: &Ctx, a: LibsAddArgs) -> Result<u8> {
         Err(e) => return Err(e),
     };
     ctx.caller.may_write(Some(&config), "Adding a library")?;
-    if !promptshelf_core::prompt::is_valid_id(&a.name) {
-        return Err(Error::Invalid(format!(
-            "library name \"{}\" must use only a-z, 0-9 and -",
-            a.name
-        )));
-    }
-    if config.libraries.iter().any(|l| l.name == a.name) {
-        return Err(Error::Invalid(format!(
-            "a library named \"{}\" exists",
-            a.name
-        )));
-    }
-    let is_url = looks_like_git_url(&a.source);
-    let (path, remote) = if is_url {
-        let path = a
-            .path
-            .clone()
-            .unwrap_or_else(|| format!("~/Prompts/{}", a.name));
-        let root = expand_tilde(&path);
-        if root.exists() {
-            return Err(Error::Invalid(format!(
-                "{} exists; pass --path for another folder",
-                root.display()
-            )));
-        }
-        let status = std::process::Command::new("git")
-            .args(["clone", "--", &a.source])
-            .arg(&root)
-            .status()
-            .map_err(|e| Error::Git(format!("could not run git: {e}")))?;
-        if !status.success() {
-            return Err(Error::Git(format!("git clone {} failed", a.source)));
-        }
-        (path, Some(a.source.clone()))
-    } else {
-        let root = expand_tilde(&a.source);
-        if !root.is_dir() {
-            return Err(Error::Invalid(format!(
-                "{} is not a folder",
-                root.display()
-            )));
-        }
-        // Store an absolute path, so the library works from any folder.
-        let path = if a.source.starts_with('~') {
-            a.source.clone()
-        } else {
-            std::path::absolute(&root)
-                .map_err(|e| Error::io(&root, e))?
-                .display()
-                .to_string()
-        };
-        (path, None)
-    };
-    let writes = match a.writes {
-        Some(WritesArg::Commit) => Writes::Commit,
-        Some(WritesArg::PullRequest) => Writes::PullRequest,
-        None if is_url => Writes::PullRequest,
-        None => Writes::Commit,
-    };
-    config.libraries.push(LibraryConfig {
-        name: a.name.clone(),
-        path: path.clone(),
-        remote,
-        writes,
-        personal: false,
-        trusted: None,
-        forge: None,
-        api: None,
-    });
+    let lib = setup::add_library(
+        &mut config,
+        &setup::AddLibrary {
+            name: &a.name,
+            source: &a.source,
+            path: a.path.as_deref(),
+            writes: a.writes.map(|w| match w {
+                WritesArg::Commit => Writes::Commit,
+                WritesArg::PullRequest => Writes::PullRequest,
+            }),
+            trusted: None,
+            show_progress: true,
+        },
+    )?;
     config.save()?;
+    let root = expand_tilde(&lib.path);
     if ctx.json {
         output::json(
-            json!({ "library": { "name": a.name, "path": expand_tilde(&path).display().to_string(), "writes": writes } }),
+            json!({ "library": { "name": lib.name, "path": root.display().to_string(), "writes": lib.writes } }),
         );
     } else {
-        println!(
-            "Added library {} ({})",
-            a.name,
-            expand_tilde(&path).display()
-        );
+        println!("Added library {} ({})", lib.name, root.display());
     }
     Ok(exit::OK)
 }
@@ -212,12 +130,7 @@ pub(super) fn skill(ctx: &Ctx, cmd: SkillCommand) -> Result<u8> {
                 promptshelf_core::config::home_dir()
                     .ok_or_else(|| Error::Invalid("no home folder".into()))?
             };
-            let path: PathBuf = base
-                .join(".claude")
-                .join("skills")
-                .join("promptshelf")
-                .join("SKILL.md");
-            fsutil::write_atomic(&path, SKILL_MD.as_bytes())?;
+            let path = promptshelf_core::agents::install_skill(&base)?;
             if ctx.json {
                 output::json(json!({ "path": path.display().to_string() }));
             } else {

@@ -12,7 +12,7 @@ use promptshelf_core::state::UsageLog;
 use promptshelf_core::template::Value;
 use promptshelf_core::{Config, Error, Shelf};
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::paste;
 use crate::service::{self, Detail, FillView, Overview, Query, Summary};
@@ -28,12 +28,19 @@ pub struct AppState {
     pub settings: Mutex<Settings>,
     /// Why the shortcut could not be registered, for Settings.
     pub hotkey_error: Mutex<Option<String>>,
+    /// The last sync of each library in this run, for the sidebar and Settings.
+    pub last_sync: Mutex<service::LastSyncs>,
 }
 
 pub(crate) type CmdResult<T> = Result<T, String>;
 
+/// An error in words for the person: git's failures get plain words first.
 pub(crate) fn msg(e: Error) -> String {
-    e.to_string()
+    let text = e.to_string();
+    match (&e, promptshelf_core::tools::explain(&text)) {
+        (Error::Git(_), Some(hint)) => format!("{} ({text})", hint.message),
+        _ => text,
+    }
 }
 
 impl AppState {
@@ -71,6 +78,13 @@ fn load_pins(shelf: &Shelf) -> Pins {
     pins::load(shelf).unwrap_or_default()
 }
 
+/// After a write: forgets the loaded shelf and tells every window with a
+/// "shelf-changed" event, so they read the files again.
+pub(crate) fn changed(app: &AppHandle, state: &AppState) {
+    state.invalidate();
+    let _ = app.emit("shelf-changed", ());
+}
+
 /// Runs blocking work (resolvers, git) off the main thread.
 pub(crate) async fn blocking<T: Send + 'static>(
     f: impl FnOnce() -> CmdResult<T> + Send + 'static,
@@ -83,7 +97,10 @@ pub(crate) async fn blocking<T: Send + 'static>(
 #[tauri::command]
 pub async fn overview(state: State<'_, AppState>) -> CmdResult<Overview> {
     match state.shelf() {
-        Ok(shelf) => Ok(service::overview(&shelf, &load_pins(&shelf))),
+        Ok(shelf) => {
+            let last = state.last_sync.lock().expect("sync lock").clone();
+            Ok(service::overview(&shelf, &load_pins(&shelf), &last))
+        }
         Err(Error::NoConfig) => Ok(service::empty_overview()),
         Err(e) => Err(msg(e)),
     }
@@ -183,5 +200,11 @@ pub async fn send_prompt(
     Ok(result)
 }
 
+mod agents;
+mod manage;
 mod more;
+mod team;
+pub use agents::*;
+pub use manage::*;
 pub use more::*;
+pub use team::*;

@@ -76,7 +76,7 @@ fn run(lib: &Library, personal: bool, opts: &Options, report: &mut Report) -> Re
     if opts.commit && !team {
         report.committed = checkpoint(root)?;
     }
-    if git::upstream(root).is_none() {
+    if git::upstream(root).is_none() && !track_remote_branch(root)? {
         let has_remote = !git::run(root, &["remote"])?.trim().is_empty();
         if has_remote && opts.push && !team && git::branch(root).is_some() {
             git::run(root, &["push", "-q", "-u", "origin", "HEAD"])?;
@@ -127,17 +127,29 @@ fn run(lib: &Library, personal: bool, opts: &Options, report: &mut Report) -> Re
 fn rebase(root: &Path, report: &mut Report) -> Result<bool> {
     let mut args = identity(root)?;
     args.extend(["rebase", "-q", "--autostash", "@{u}"]);
-    let r = git::try_run(root, &args)?;
-    if r.ok {
+    if git::try_run(root, &args)?.ok {
         return Ok(true);
     }
-    let files = git::run(root, &["diff", "--name-only", "--diff-filter=U"]).unwrap_or_default();
-    report.conflicts = files.lines().map(str::to_string).collect();
-    if report.conflicts.is_empty() {
-        report.conflicts.push("(unknown)".into());
-    }
-    let _ = git::try_run(root, &["rebase", "--abort"]);
+    rebase_failed(root, report);
     Ok(false)
+}
+
+/// A library just connected to a remote that already has its branch: track
+/// that branch, so the sync pulls before it pushes. Returns true when the
+/// branch now has an upstream.
+fn track_remote_branch(root: &Path) -> Result<bool> {
+    let Some(branch) = git::branch(root) else {
+        return Ok(false);
+    };
+    if !git::try_run(root, &["remote", "get-url", "origin"])?.ok {
+        return Ok(false);
+    }
+    let _ = git::try_run(root, &["fetch", "-q", "origin"]);
+    let remote_branch = format!("origin/{branch}");
+    if !git::try_run(root, &["rev-parse", "--verify", "-q", &remote_branch])?.ok {
+        return Ok(false);
+    }
+    Ok(git::try_run(root, &["branch", "-q", "-u", &remote_branch])?.ok)
 }
 
 fn count(root: &Path, rev: &str) -> Option<u32> {
@@ -215,3 +227,121 @@ pub fn setup_merge_driver(root: &Path, program: &str) -> Result<()> {
     }
     Ok(())
 }
+
+/// What to do with files edited both here and on the remote.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Resolution {
+    /// Keep this computer's lines where both sides changed.
+    Mine,
+    /// Take the remote's lines where both sides changed.
+    Theirs,
+    /// Take the remote's lines, and save this computer's whole file as a new
+    /// prompt next to it (`<id>-2`).
+    Both,
+}
+
+/// Resolves the conflicts the last sync found, then syncs again. Nothing is
+/// force-pushed: the remote's commits stay, and the choice decides only the
+/// lines both sides changed.
+pub fn resolve(lib: &Library, personal: bool, how: Resolution, opts: &Options) -> Report {
+    let mut report = Report {
+        library: lib.name().to_string(),
+        ..Default::default()
+    };
+    if let Err(e) = resolve_run(&lib.root, how, &mut report) {
+        report.error = Some(e.to_string());
+    }
+    if report.error.is_some() || !report.conflicts.is_empty() {
+        report.changes = git::changed_paths(&lib.root).map(|c| c.len()).unwrap_or(0);
+        return report;
+    }
+    let mut after = sync(lib, personal, opts);
+    after.committed = report.committed.or(after.committed);
+    after
+}
+
+fn resolve_run(root: &Path, how: Resolution, report: &mut Report) -> Result<()> {
+    checkpoint(root)?;
+    git::run(root, &["fetch", "-q", "--prune"])?;
+    if git::upstream(root).is_none() {
+        return Err(crate::Error::Invalid(
+            "the library has no remote branch to resolve against".into(),
+        ));
+    }
+    let mut keep = Vec::new();
+    if how == Resolution::Both {
+        let mut trial = Report::default();
+        if rebase(root, &mut trial)? {
+            return Ok(());
+        }
+        for file in trial.conflicts {
+            if let Ok(text) = git::run(root, &["show", &format!("HEAD:{file}")]) {
+                keep.push((file, text));
+            }
+        }
+    }
+    // In a rebase, "ours" is the remote and "theirs" is this computer's commits.
+    let side = if how == Resolution::Mine {
+        "theirs"
+    } else {
+        "ours"
+    };
+    let mut args = identity(root)?;
+    args.extend(["rebase", "-q", "--autostash", "-X", side, "@{u}"]);
+    if !git::try_run(root, &args)?.ok {
+        rebase_failed(root, report);
+        report.error = Some("git could not combine these files; edit one of them first".into());
+        return Ok(());
+    }
+    for (file, text) in &keep {
+        save_copy(root, file, text)?;
+    }
+    if !keep.is_empty() {
+        report.committed = checkpoint(root)?;
+    }
+    Ok(())
+}
+
+/// Records the files of a failed rebase and aborts it.
+fn rebase_failed(root: &Path, report: &mut Report) {
+    let files = git::run(root, &["diff", "--name-only", "--diff-filter=U"]).unwrap_or_default();
+    report.conflicts = files.lines().map(str::to_string).collect();
+    if report.conflicts.is_empty() {
+        report.conflicts.push("(unknown)".into());
+    }
+    let _ = git::try_run(root, &["rebase", "--abort"]);
+}
+
+/// Saves this computer's version of `file` as `<stem>-<n>.md` next to it,
+/// with a matching ID.
+fn save_copy(root: &Path, file: &str, text: &str) -> Result<()> {
+    let path = root.join(file);
+    let stem = path
+        .file_stem()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let is_prompt = path.extension().is_some_and(|e| e == "md");
+    for n in 2..100 {
+        let id = format!("{stem}-{n}");
+        let name = match path.extension() {
+            Some(ext) => format!("{id}.{}", ext.to_string_lossy()),
+            None => id.clone(),
+        };
+        let text = if is_prompt {
+            crate::edit::set_field(text, "id", &id)
+        } else {
+            text.to_string()
+        };
+        if crate::fsutil::create_new(&path.with_file_name(name), text.as_bytes())? {
+            return Ok(());
+        }
+    }
+    Err(crate::Error::Invalid(format!(
+        "no free name for a copy of {file}"
+    )))
+}
+
+#[cfg(test)]
+#[path = "tests/sync.rs"]
+mod tests;
