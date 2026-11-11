@@ -20,7 +20,7 @@ fn a_translocated_app_can_not_be_the_command() {
     let installed = Path::new("/Applications/PromptShelf.app/Contents/MacOS/PromptShelf");
     if cfg!(windows) {
         // Windows has no shelf link: the note points to cargo and npm.
-        assert!(command_note(installed).is_some_and(|n| n.contains("cargo or npm")));
+        assert!(command_note(installed).is_some_and(|n| n.contains("with cargo")));
     } else {
         assert!(command_note(translocated).is_some_and(|n| n.contains("Applications")));
         assert_eq!(command_note(installed), None);
