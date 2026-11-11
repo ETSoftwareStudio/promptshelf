@@ -27,7 +27,9 @@ release-please updates every file listed in `release-please-config.json`:
 - `README.md`: the install snippet between the `x-release-please` markers.
 - `npm/promptshelf/package.json`: `version`.
 - `app/src-tauri/Cargo.toml`: the line that ends with `# x-release-please-version`. The desktop app shows this version in Settings → About.
-- `app/src-tauri/tauri.conf.json` and `app/package.json`: `version`.
+- `app/package.json`: `version`.
+
+`app/src-tauri/tauri.conf.json` has no `version`, so Tauri uses the version in `app/src-tauri/Cargo.toml`. release-please writes JSON files again from the start, and the app's formatter rejects how it writes that file.
 
 The two `Cargo.lock` files hold the versions of the path crates, so the release workflow runs `cargo update --workspace` for each. `app/pnpm-lock.yaml` does not hold the app's own version, so it needs no change.
 
