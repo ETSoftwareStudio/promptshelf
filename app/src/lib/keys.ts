@@ -25,3 +25,13 @@ export function libraryKey(e: {
       return null;
   }
 }
+
+/** Tab in a text field for prompt text types two spaces, as YAML wants. It
+ *  returns the new text, or null when the key is not a plain Tab. */
+export function typeTab(e: KeyboardEvent): string | null {
+  if (e.key !== "Tab" || e.shiftKey) return null;
+  e.preventDefault();
+  const el = e.currentTarget as HTMLTextAreaElement;
+  el.setRangeText("  ", el.selectionStart, el.selectionEnd, "end");
+  return el.value;
+}

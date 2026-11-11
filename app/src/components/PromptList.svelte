@@ -4,7 +4,7 @@
   import type { Summary } from "../lib/types";
   import Icon from "./Icon.svelte";
   import { flip } from "svelte/animate";
-  import { grow, moveParams } from "../lib/motion";
+  import { grow, moveParams, row as rowIn } from "../lib/motion";
 
   let {
     title,
@@ -14,7 +14,9 @@
     loading = false,
     personal = null,
     searchEl = $bindable(),
+    draft = null,
     onselect,
+    ondraft,
     onnew,
     onopen,
   }: {
@@ -26,7 +28,12 @@
     /** The Personal library's name; other libraries show a tag. */
     personal?: string | null;
     searchEl?: HTMLInputElement;
+    /** The title of the new prompt before its first save. Its row is at the
+     *  top and is the selection while it exists. */
+    draft?: string | null;
     onselect: (id: string) => void;
+    /** A click on the new prompt's row. */
+    ondraft?: () => void;
     onnew: () => void;
     /** Enter on the list: open the selected prompt's Send preview. */
     onopen: () => void;
@@ -82,6 +89,18 @@
     </label>
   </div>
   <div class="rows" bind:this={rows} role="listbox" tabindex="-1" aria-label={title} {onkeydown}>
+    {#if draft !== null}
+      <button
+        class="row on"
+        transition:rowIn
+        role="option"
+        aria-selected="true"
+        onclick={() => ondraft?.()}
+      >
+        <span class="t"><span>{draft}</span></span>
+        <span class="d"><span class="desc">New prompt, not saved yet</span></span>
+      </button>
+    {/if}
     {#each items as s (s.fullId)}
       <button
         class="row"
@@ -105,7 +124,7 @@
         </span>
       </button>
     {:else}
-      {#if !loading}
+      {#if !loading && draft === null}
         <p class="none">{query ? `Nothing matches “${query}”.` : "No prompts here yet."}</p>
       {/if}
     {/each}

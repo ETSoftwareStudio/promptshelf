@@ -56,8 +56,9 @@ export const api = {
   pin: (id: string, at?: number) => call<string[]>("pin_prompt", { id, at: at ?? null }),
   unpin: (id: string) => call<string[]>("unpin_prompt", { id }),
   saveFile: (id: string, text: string) => call<string>("save_prompt_file", { id, text }),
-  newPrompt: (title: string, kind: Kind, library?: string | null) =>
-    call<string>("new_prompt", { title, kind, library: library ?? null }),
+  /** Writes a new prompt from the New Prompt form. Returns its full ID. */
+  createPrompt: (title: string, kind: Kind, library: string | null, body: string) =>
+    call<string>("create_prompt", { title, kind, library, body }),
   sync: (library?: string | null) =>
     call<SyncReport[]>("sync_libraries", { library: library ?? null }),
   /** First run: a folder for Personal, and a repo to clone into it. */

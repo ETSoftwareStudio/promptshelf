@@ -43,8 +43,17 @@ pub fn save_file(shelf: &Shelf, full_id: &str, text: &str) -> Result<String> {
     edit::save_text(shelf, full_id, text)
 }
 
-/// Creates a new prompt in a library (Personal when none is named).
-pub fn new_prompt(shelf: &Shelf, title: &str, kind: Kind, library: Option<&str>) -> Result<String> {
+/// Creates a new prompt from the New Prompt form, in a library (Personal when
+/// none is named). It writes the file once, with the body as typed. An empty
+/// title becomes "Untitled". In a team library the file goes into a new
+/// proposal.
+pub fn create_prompt(
+    shelf: &Shelf,
+    title: &str,
+    kind: Kind,
+    library: Option<&str>,
+    body: &str,
+) -> Result<String> {
     let lib = match library {
         Some(name) => shelf.library(name)?,
         None => shelf
@@ -61,7 +70,7 @@ pub fn new_prompt(shelf: &Shelf, title: &str, kind: Kind, library: Option<&str>)
         &NewPrompt {
             title,
             kind,
-            body: "Write the prompt here. Use {{name}} for a blank.\n",
+            body,
             tags: &[],
         },
     )?;

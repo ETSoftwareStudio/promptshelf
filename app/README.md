@@ -5,6 +5,7 @@ The desktop app for macOS, Windows and Linux: a library window, a quick panel be
 ## What it does
 
 - **Library window** — Three columns: the sidebar (pins with ⌘1 to ⌘9, prompts, kinds, libraries, sync), the list (search as you type) and the detail. The detail shows the prompt as a sentence. Each value is tinted by its source and has a numbered footnote that says where it came from. The footnotes of open blanks are the fill form.
+- **New prompt** — **+** in the list or ⌘N (Ctrl+N on Windows and Linux) adds an "Untitled" row at the top of the list and a form in the detail: title, kind, library and the text. The library is the one in view in the sidebar, else Personal. Nothing is written until Save (⌘S). Esc or Discard drops the new prompt; with text typed, the app asks first. It also asks when you pick another prompt or another view.
 - **Edit** — The pencil button opens the whole Markdown file. ⌘S saves it only when it still parses as a prompt.
 - **Send** — ⌘↩ opens a preview of the message as it will arrive. Copy puts it on the clipboard. Open blanks stay as `{{name}}`, with the instruction for the model to fill them from the chat.
 - **Quick panel** — Click the tray icon or press the shortcut (⌘⇧Space on a Mac, Ctrl+Shift+Space elsewhere). Pins come first, then search. Return fills a prompt, Return again previews it, and the preview offers Copy and Paste.
@@ -28,13 +29,13 @@ Closing a window hides it. The app keeps running in the tray; quit it from the t
 
 Every link opens the library window and brings it to the front.
 
-| Link                                | What it does                                            |
-| ----------------------------------- | ------------------------------------------------------- |
-| `promptshelf://open/<library>/<id>` | Selects the prompt.                                     |
-| `promptshelf://fill/<library>/<id>` | Selects the prompt and opens the Send preview, like ⌘↩. |
-| `promptshelf://search?q=<text>`     | Shows All Prompts with that search.                     |
-| `promptshelf://new?title=<text>`    | Opens the New prompt sheet. `title` is optional.        |
-| `promptshelf://`                    | Only opens the window.                                  |
+| Link                                | What it does                                              |
+| ----------------------------------- | --------------------------------------------------------- |
+| `promptshelf://open/<library>/<id>` | Selects the prompt.                                       |
+| `promptshelf://fill/<library>/<id>` | Selects the prompt and opens the Send preview, like ⌘↩.   |
+| `promptshelf://search?q=<text>`     | Shows All Prompts with that search.                       |
+| `promptshelf://new?title=<text>`    | Starts a new prompt with that title. `title` is optional. |
+| `promptshelf://`                    | Only opens the window.                                    |
 
 ### Rules for links
 
@@ -43,7 +44,7 @@ Any web page can open a link, so the app treats every link as untrusted.
 - **Checks** — Library names and IDs must follow the ID rules: `a-z`, `0-9` and single hyphens. A link is at most 2048 bytes, and a search or title at most 200 characters.
 - **No writes** — A link never writes a file, changes the config or syncs. Only the button you click does.
 - **No commands** — A prompt that a link opens runs no shell commands (`from: "git …"`), also in a trusted library. Those blanks wait, and Run Commands runs them. The clipboard and the other named sources still fill.
-- **Open sheets stay** — While a sheet or the editor is open, a link only shows a message.
+- **Open sheets stay** — While a sheet, the editor or a new prompt is open, a link only shows a message.
 - **Other links** — A bad link, a missing prompt or another route (`import` is kept for sharing) shows a message such as "PromptShelf can't open this link: no prompt personal/foo". Nothing else happens.
 
 On Windows and Linux, a link sent to a running app goes to that app; it does not start a second copy. The installers register the scheme. An AppImage registers it when it starts. A development build (`vp run tauri dev`) does not register it.

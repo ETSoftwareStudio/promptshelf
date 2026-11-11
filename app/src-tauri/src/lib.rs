@@ -96,7 +96,7 @@ pub fn run() {
             commands::pin_prompt,
             commands::unpin_prompt,
             commands::save_prompt_file,
-            commands::new_prompt,
+            commands::create_prompt,
             commands::sync_libraries,
             commands::init_personal,
             commands::get_settings,

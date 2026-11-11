@@ -2,6 +2,7 @@
      it still parses as a prompt. -->
 <script lang="ts">
   import { modKey } from "../lib/hotkey";
+  import { typeTab } from "../lib/keys";
 
   let {
     text = $bindable(),
@@ -31,12 +32,9 @@
     } else if (e.key === "Escape" && oncancel) {
       e.preventDefault();
       oncancel();
-    } else if (e.key === "Tab" && !e.shiftKey) {
-      // Tab types two spaces, as YAML wants.
-      e.preventDefault();
-      const el = e.currentTarget as HTMLTextAreaElement;
-      el.setRangeText("  ", el.selectionStart, el.selectionEnd, "end");
-      text = el.value;
+    } else {
+      const next = typeTab(e);
+      if (next !== null) text = next;
     }
   }
 </script>

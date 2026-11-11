@@ -52,15 +52,67 @@ fn save_file_writes_and_reports_a_new_id() {
     assert!(err.to_string().contains("taken"), "{err}");
 }
 
+/// Reads the shelf again from its config, as the app does after a write.
+fn reload(shelf: &Shelf) -> Shelf {
+    Shelf::load(shelf.config.clone())
+}
+
 #[test]
-fn new_prompt_goes_into_personal() {
+fn create_prompt_writes_the_typed_body() {
     let (_dir, shelf) = setup();
-    let id = new_prompt(&shelf, "  Strict review ", Kind::Template, None).unwrap();
+    let body = "Review {{file}}.\n\n  Keep it short.";
+    let id = create_prompt(&shelf, "  Strict review ", Kind::Template, None, body).unwrap();
     // "strict-review" is free: the existing file's ID is "review".
     assert_eq!(id, "personal/strict-review");
-    let id = new_prompt(&shelf, "", Kind::Snippet, Some("personal")).unwrap();
+    let shelf = reload(&shelf);
+    let p = shelf.resolve(&id).unwrap();
+    assert_eq!(p.title, "Strict review");
+    assert_eq!(p.kind, Kind::Template);
+    assert!(
+        p.path.ends_with("templates/strict-review.md"),
+        "{:?}",
+        p.path
+    );
+    let text = std::fs::read_to_string(&p.path).unwrap();
+    assert!(
+        text.ends_with("---\nReview {{file}}.\n\n  Keep it short.\n"),
+        "{text}"
+    );
+    assert!(!text.contains("Write the prompt here"), "{text}");
+}
+
+#[test]
+fn create_prompt_names_an_empty_title_untitled() {
+    let (_dir, shelf) = setup();
+    let id = create_prompt(&shelf, "  ", Kind::Snippet, Some("personal"), "").unwrap();
     assert_eq!(id, "personal/untitled");
-    assert!(new_prompt(&shelf, "x", Kind::Snippet, Some("nope")).is_err());
+    let shelf = reload(&shelf);
+    let p = shelf.resolve(&id).unwrap();
+    assert_eq!(p.title, "Untitled");
+    assert_eq!(p.kind, Kind::Snippet);
+    let id = create_prompt(&shelf, "", Kind::Snippet, None, "Text").unwrap();
+    assert_eq!(id, "personal/untitled-2");
+    assert!(create_prompt(&shelf, "x", Kind::Snippet, Some("nope"), "").is_err());
+}
+
+#[test]
+fn create_prompt_puts_a_draft_in_the_inbox() {
+    let (_dir, shelf) = setup();
+    let id = create_prompt(&shelf, "Half an idea", Kind::Draft, None, "Maybe.").unwrap();
+    assert_eq!(id, "personal/half-an-idea");
+    let shelf = reload(&shelf);
+    let p = shelf.resolve(&id).unwrap();
+    assert_eq!(p.kind, Kind::Draft);
+    let inbox = shelf.library("personal").unwrap().root.join("inbox");
+    assert!(p.path.starts_with(&inbox), "{:?}", p.path);
+    let drafts = shelf
+        .list(&promptshelf_core::ListFilter {
+            library: Some("personal".into()),
+            kind: Some(Kind::Draft),
+            tag: None,
+        })
+        .unwrap();
+    assert!(drafts.iter().any(|d| d.full_id() == id));
 }
 
 #[test]

@@ -43,19 +43,22 @@ pub async fn save_prompt_file(
     result
 }
 
+/// Writes a new prompt from the New Prompt form. Nothing is on disk before.
 #[tauri::command]
-pub async fn new_prompt(
+pub async fn create_prompt(
     state: State<'_, AppState>,
     title: String,
     kind: Option<Kind>,
     library: Option<String>,
+    body: String,
 ) -> CmdResult<String> {
     let shelf = state.shelf().map_err(msg)?;
-    let result = writes::new_prompt(
+    let result = writes::create_prompt(
         &shelf,
         &title,
         kind.unwrap_or(Kind::Template),
         library.as_deref(),
+        &body,
     )
     .map_err(msg);
     state.invalidate();
