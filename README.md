@@ -40,8 +40,8 @@ After the first release:
 <!-- x-release-please-start-version -->
 ```sh
 brew install etsoftwarestudio/tap/promptshelf   # macOS and Linux
-cargo install promptshelf --version 0.0.0       # any system with Rust
-npx promptshelf@0.0.0 --help                    # try it without installing
+cargo install promptshelf --version 0.1.0       # any system with Rust
+npx promptshelf@0.1.0 --help                    # try it without installing
 ```
 <!-- x-release-please-end -->
 

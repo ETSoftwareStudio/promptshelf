@@ -5,7 +5,7 @@ members = ["crates/promptshelf-core", "crates/promptshelf"]
 exclude = ["app/src-tauri"]
 
 [workspace.package]
-version = "0.0.0" # x-release-please-version
+version = "0.1.0" # x-release-please-version
 edition = "2024"
 rust-version = "1.85"
 license = "MIT"
@@ -16,7 +16,7 @@ keywords = ["prompts", "llm", "templates", "cli", "git"]
 categories = ["command-line-utilities", "development-tools", "text-processing"]
 
 [workspace.dependencies]
-promptshelf-core = { path = "crates/promptshelf-core", version = "0.0.0" } # x-release-please-version
+promptshelf-core = { path = "crates/promptshelf-core", version = "0.1.0" } # x-release-please-version
 clap = { version = "4.6", features = ["derive", "env"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

@@ -1,6 +1,6 @@
 {
   "name": "promptshelf",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Save, fill and share prompts. Installs the shelf command.",
   "license": "MIT",
   "repository": {
@@ -8,12 +8,23 @@
     "url": "git+https://github.com/ETSoftwareStudio/promptshelf.git"
   },
   "homepage": "https://github.com/ETSoftwareStudio/promptshelf",
-  "keywords": ["prompts", "llm", "templates", "cli"],
+  "keywords": [
+    "prompts",
+    "llm",
+    "templates",
+    "cli"
+  ],
   "bin": {
     "promptshelf": "bin/shelf.js",
     "shelf": "bin/shelf.js"
   },
-  "files": ["bin", "lib", "checksums.json", "README.md", "LICENSE"],
+  "files": [
+    "bin",
+    "lib",
+    "checksums.json",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18"
   }
