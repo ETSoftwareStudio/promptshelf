@@ -65,7 +65,7 @@
     position: absolute; left: 40px; right: 40px; bottom: 34px; height: 7px;
     border-radius: 4px; background: var(--shelf);
   }
-  .brand { position: absolute; left: 44px; top: 40px; width: 380px; }
+  .brand { position: absolute; left: 44px; top: 50px; width: 380px; }
   .row { display: flex; align-items: center; gap: 16px; }
   .row img { width: 64px; height: 64px; }
   h1 {
@@ -73,10 +73,8 @@
     font-size: 46px; letter-spacing: -0.01em; line-height: 1;
     font-variation-settings: "opsz" 48;
   }
-  .tag { margin-top: 18px; font-size: 15px; line-height: 1.45; color: var(--ink2); max-width: 340px; }
+  .tag { margin-top: 22px; font-size: 15px; line-height: 1.45; color: var(--ink2); max-width: 340px; }
 
-  .cmd { margin-top: 14px; font: 13px/1 "SF Mono", ui-monospace, Menlo, monospace; color: var(--ink); }
-  .cmd span { color: var(--cursor); margin-right: 6px; }
   .card {
     position: absolute; right: 44px; bottom: 41px; width: 392px;
     background: var(--panel); border: 1px solid var(--edge); border-bottom: none;
@@ -114,7 +112,6 @@
       <h1>PromptShelf</h1>
     </div>
     <p class="tag">Save, fill and share prompts. Markdown files in a folder you own, synced with git.</p>
-    <p class="cmd"><span>$</span> shelf fill strict-pr-review</p>
   </div>
 
   <div class="card">
