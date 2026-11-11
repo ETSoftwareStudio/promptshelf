@@ -26,18 +26,12 @@ Try these in order. Stop at the first one that works.
    ```sh
    brew install etsoftwarestudio/tap/promptshelf
    ```
-2. npm, if `npm --version` works:
+2. Cargo, if `cargo --version` works. This builds from source and takes a few minutes:
    ```sh
-   npm install -g promptshelf
-   ```
-3. Cargo, if `cargo --version` works. This builds from source and takes a few minutes:
-   ```sh
-   cargo install --locked --git https://github.com/ETSoftwareStudio/promptshelf promptshelf
+   cargo install --locked promptshelf
    ```
 
 If none of these tools exist, stop. Tell the person to install one of them (Homebrew on macOS: https://brew.sh), or to download a binary from https://github.com/ETSoftwareStudio/promptshelf/releases.
-
-Some packages may not be published yet. If `brew` or `npm` says the package does not exist, try the next option.
 
 Check:
 ```sh
