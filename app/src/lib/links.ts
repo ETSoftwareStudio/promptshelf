@@ -21,7 +21,8 @@ export function linkPlan(
   now: {
     /** False at first run, before the Personal library has a folder. */
     configured: boolean;
-    /** True while a sheet or the editor is open: a link must not replace it. */
+    /** True while a sheet, the editor or a new prompt is open: a link must
+     *  not replace it. */
     busy: boolean;
   },
 ): LinkPlan {
@@ -29,7 +30,8 @@ export function linkPlan(
   if (link.route === "home") return { kind: "none" };
   if (!now.configured)
     return { kind: "toast", text: cantOpen("choose a folder for your Personal library first") };
-  if (now.busy) return { kind: "toast", text: cantOpen("close the open sheet or edit first") };
+  if (now.busy)
+    return { kind: "toast", text: cantOpen("close the open sheet, edit or new prompt first") };
   switch (link.route) {
     case "open":
     case "fill":

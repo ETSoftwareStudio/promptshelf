@@ -25,7 +25,7 @@ pub enum Link {
     Fill { library: String, id: String },
     /// `promptshelf://search?q=<text>`: All Prompts with that search.
     Search { query: String },
-    /// `promptshelf://new?title=<text>`: the New prompt sheet.
+    /// `promptshelf://new?title=<text>`: a new prompt with that title, not saved.
     New { title: Option<String> },
     /// A link the app can not open, with the reason in words for a toast.
     Bad { reason: String },

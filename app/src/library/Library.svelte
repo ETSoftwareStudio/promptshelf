@@ -10,7 +10,8 @@
   import Icon from "../components/Icon.svelte";
   import ItemList from "../components/ItemList.svelte";
   import NoPrompt from "../components/NoPrompt.svelte";
-  import NewPromptSheet from "../components/NewPromptSheet.svelte";
+  import ConfirmSheet from "../components/ConfirmSheet.svelte";
+  import NewPromptForm from "../components/NewPromptForm.svelte";
   import ProblemDetail from "../components/ProblemDetail.svelte";
   import PromptList from "../components/PromptList.svelte";
   import SendSheet from "../components/SendSheet.svelte";
@@ -18,6 +19,7 @@
   import SyncErrorSheet from "../components/SyncErrorSheet.svelte";
   import UpdateDetail from "../components/UpdateDetail.svelte";
   import { api, copyInBrowser, errorText, onEvent } from "../lib/api";
+  import { type Draft, newDraft, rowTitle, typed } from "../lib/draft";
   import { Filler } from "../lib/filler.svelte";
   import { libraryKey } from "../lib/keys";
   import { cantOpen, linkPlan } from "../lib/links";
@@ -28,7 +30,6 @@
   import type {
     Detail as DetailT,
     InboxView,
-    Kind,
     Link,
     Overview,
     ProposalView,
@@ -52,15 +53,23 @@
   let fromPin = $state<string | null>(null);
   let detail = $state<DetailT | null>(null);
   let editing = $state(false);
-  let sheet = $state<"send" | "new" | "addlib" | null>(null);
+  let sheet = $state<"send" | "addlib" | null>(null);
+  /** A new prompt before its first save. While it exists, its row is the
+   *  selection and the form is the detail. */
+  let draft = $state<Draft | null>(null);
+  /** The prompt that was selected before the draft, to show again on Discard. */
+  let draftPrev: string | null = null;
+  let draftSaving = $state(false);
+  let draftError = $state<string | null>(null);
+  /** What to do after "Discard this new prompt?" is confirmed. */
+  let leaving = $state<(() => void) | null>(null);
+  let draftForm = $state<ReturnType<typeof NewPromptForm>>();
   /** The library whose sync failed or found a conflict, for its sheet. */
   let syncSheet = $state<string | null>(null);
   let sending = $state(false);
   let syncing = $state(false);
   let refreshing = $state(false);
   let syncNote = $state("");
-  /** The title a `promptshelf://new?title=` link gives the New prompt sheet. */
-  let newTitle = $state("");
   /** False until the window has asked for a waiting link, so nothing is
    *  selected before the link says what to show. */
   let linkReady = false;
@@ -124,7 +133,8 @@
         first = out[0]?.fullId ?? null;
       }
       if (seq !== listSeq) return;
-      if (!keep || !has(selected)) await select(first);
+      // The draft stays the selection until you leave it.
+      if (!draft && (!keep || !has(selected))) await select(first);
     } catch (e) {
       if (seq === listSeq) toast.show(errorText(e), true);
     } finally {
@@ -167,10 +177,91 @@
     }
   }
 
-  /** You picked a prompt: commands run again. */
+  /** You picked a prompt: commands run again. A draft asks first. */
   function pick(id: string | null, pin = false) {
-    linkHold = false;
-    return pin && id ? openPin(id) : select(id);
+    leaveDraft(() => {
+      linkHold = false;
+      void (pin && id ? openPin(id) : select(id));
+    });
+  }
+
+  /** Starts a new prompt in the detail, with no file yet. A second ⌘N only
+   *  puts the cursor back in the title. */
+  function startDraft(title = "") {
+    if (!overview) return;
+    if (draft) {
+      draftForm?.focus();
+      return;
+    }
+    draft = newDraft(nav, overview.libraries, overview.personal, title);
+    draftError = null;
+    draftPrev = special ? null : selected;
+    selected = null;
+    detail = null;
+    editing = false;
+    fromPin = null;
+    filler.clear();
+    if (special) {
+      nav = "all";
+      void loadList();
+    }
+  }
+
+  /** Leaves the draft: at once when nothing is typed, else after a confirm. */
+  function leaveDraft(then: () => void) {
+    if (!draft) return then();
+    if (typed(draft)) {
+      leaving = then;
+      return;
+    }
+    dropDraft();
+    then();
+  }
+
+  function dropDraft() {
+    draft = null;
+    draftError = null;
+    leaving = null;
+  }
+
+  /** Esc or Discard: shows the prompt that was selected before. */
+  function discardDraft() {
+    leaveDraft(() => {
+      const prev = items.some((s) => s.fullId === draftPrev) ? draftPrev : null;
+      void select(prev ?? items[0]?.fullId ?? null);
+    });
+  }
+
+  async function saveDraft() {
+    if (!draft || draftSaving) return;
+    const d = $state.snapshot(draft);
+    draftSaving = true;
+    draftError = null;
+    try {
+      const id = await api.createPrompt(d.title, d.kind, d.library, d.body);
+      const team = overview?.libraries.find((l) => l.name === d.library)?.writes === "pull-request";
+      dropDraft();
+      toast.show(team ? "Saved as your proposal. Send it when it is ready." : "Saved.");
+      // Drafts live in the Inbox. Other kinds stay in this view when it
+      // lists them, else All Prompts shows them.
+      selected = id;
+      if (d.kind === "draft") {
+        nav = "inbox";
+        clearQuery();
+      }
+      await loadOverview();
+      await loadList();
+      if (d.kind !== "draft" && !items.some((s) => s.fullId === id)) {
+        nav = "all";
+        clearQuery();
+        await loadList();
+      }
+      await select(id);
+    } catch (e) {
+      draftError = errorText(e);
+    } finally {
+      draftSaving = false;
+    }
   }
 
   async function takeLink(): Promise<Link | null> {
@@ -187,7 +278,9 @@
     linkHold = true;
     const plan = linkPlan(link, {
       configured: Boolean(overview?.hasConfig),
-      busy: Boolean(sheet || syncSheet || editing || promptActions?.isOpen()),
+      busy: Boolean(
+        sheet || syncSheet || editing || draft || leaving || promptActions?.isOpen(),
+      ),
     });
     let outcome = "opened the window";
     if (plan.kind === "toast") {
@@ -221,9 +314,8 @@
       outcome = "searched All Prompts";
       first = false;
     } else if (plan.kind === "new") {
-      newTitle = plan.title;
-      sheet = "new";
-      outcome = "opened the New prompt sheet";
+      startDraft(plan.title);
+      outcome = "started a new prompt";
     }
     if (first) await loadList(false);
     void api.linkHandled(outcome).catch(() => {});
@@ -241,9 +333,12 @@
   }
 
   function setNav(next: string) {
-    nav = next;
-    fromPin = null;
-    void loadList(false);
+    if (draft && next === nav) return;
+    leaveDraft(() => {
+      nav = next;
+      fromPin = null;
+      void loadList(false);
+    });
   }
 
   /** Clears the search without the search-as-you-type reload, which would
@@ -304,21 +399,6 @@
       toast.show(errorText(e), true);
     } finally {
       sending = false;
-    }
-  }
-
-  async function create(title: string, kind: Kind, library: string) {
-    sheet = null;
-    try {
-      const id = await api.newPrompt(title, kind, library);
-      await loadOverview();
-      nav = "all";
-      clearQuery();
-      await loadList();
-      await select(id);
-      detailView?.edit();
-    } catch (e) {
-      toast.show(errorText(e), true);
     }
   }
 
@@ -413,7 +493,7 @@
   });
 
   function onkeydown(e: KeyboardEvent) {
-    const key = sheet || syncSheet ? null : libraryKey(e);
+    const key = sheet || syncSheet || leaving ? null : libraryKey(e);
     if (!key) return;
     if (typeof key === "object") {
       const pin = overview?.pins[key.pin - 1];
@@ -424,8 +504,7 @@
       searchEl?.focus();
       searchEl?.select();
     } else if (key === "new") {
-      newTitle = "";
-      sheet = "new";
+      startDraft();
     } else if (!detail || editing) {
       return;
     } else if (key === "send") {
@@ -455,10 +534,8 @@
       onEvent("shelf-changed", () => void refresh()),
       onEvent<string>("menu", (id) => {
         if (id === "new-prompt") {
-          newTitle = "";
-          sheet = "new";
-        }
-        else if (id === "sync") void sync();
+          if (!sheet && !syncSheet && !leaving) startDraft();
+        } else if (id === "sync") void sync();
         else if (id === "find") searchEl?.focus();
       }),
     ];
@@ -518,15 +595,25 @@
         bind:searchEl
         loading={listing}
         personal={overview.personal}
+        draft={draft ? rowTitle(draft) : null}
         onselect={(id) => void pick(id)}
-        onnew={() => {
-          newTitle = "";
-          sheet = "new";
-        }}
+        ondraft={() => draftForm?.focus()}
+        onnew={() => startDraft()}
         onopen={() => detail && (sheet = "send")}
       />
     {/if}
-    {#if update}
+    {#if draft}
+      <NewPromptForm
+        bind:this={draftForm}
+        bind:draft={() => draft!, (v) => (draft = v)}
+        libraries={overview.libraries}
+        saving={draftSaving}
+        error={draftError}
+        paused={Boolean(leaving || sheet || syncSheet)}
+        onsave={() => void saveDraft()}
+        ondiscard={discardDraft}
+      />
+    {:else if update}
       <UpdateDetail
         {update}
         onallow={() => void onUpdate("allow")}
@@ -562,7 +649,23 @@
   </main>
 {/if}
 
-{#if sheet === "send" && detail && filler.view}
+{#if leaving}
+  <ConfirmSheet
+    title="Discard this new prompt?"
+    message="The title and text you typed are not saved anywhere."
+    confirm="Discard"
+    danger
+    onconfirm={() => {
+      const then = leaving;
+      dropDraft();
+      then?.();
+    }}
+    oncancel={() => {
+      leaving = null;
+      draftForm?.focus();
+    }}
+  />
+{:else if sheet === "send" && detail && filler.view}
   <SendSheet
     title={detail.title}
     text={filler.view.sendText}
@@ -571,14 +674,6 @@
     busy={sending}
     onrun={() => void filler.runCommands()}
     oncopy={() => void copy()}
-    oncancel={() => (sheet = null)}
-  />
-{:else if sheet === "new" && overview}
-  <NewPromptSheet
-    title={newTitle}
-    libraries={overview.libraries}
-    personal={overview.personal}
-    oncreate={(t, k, l) => void create(t, k, l)}
     oncancel={() => (sheet = null)}
   />
 {:else if sheet === "addlib"}

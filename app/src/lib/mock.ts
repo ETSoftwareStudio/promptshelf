@@ -261,19 +261,27 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
       p!.body = body;
       return fullId(p!);
     }
-    case "new_prompt": {
-      const title = (a.title as string) || "Untitled";
-      const np: MockPrompt = {
-        library: (a.library as string) ?? "personal",
-        id: title
+    case "create_prompt": {
+      await wait(150);
+      const title = (a.title as string).trim() || "Untitled";
+      const library = (a.library as string | null) ?? "personal";
+      const base =
+        title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, ""),
+          .replace(/^-|-$/g, "") || "untitled";
+      let id = base;
+      for (let n = 2; PROMPTS.some((x) => x.library === library && x.id === id); n++)
+        id = `${base}-${n}`;
+      const body = a.body as string;
+      const np: MockPrompt = {
+        library,
+        id,
         kind: (a.kind as Kind) ?? "template",
         title,
         tags: [],
         vars: {},
-        body: "Write the prompt here. Use {{name}} for a blank.\n",
+        body: body.endsWith("\n") ? body : `${body}\n`,
         uses: 0,
       };
       PROMPTS.push(np);
