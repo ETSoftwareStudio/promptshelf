@@ -1,6 +1,6 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/header-dark.png" />
-  <img src="docs/images/header-light.png" alt="PromptShelf: save, fill and share prompts. A prompt file with three filled blanks sits on a shelf." width="880" />
+  <img src="docs/images/header-light.png" alt="PromptShelf: prompt templates for you and your coding agents. Plain Markdown in a folder you own, shared with git. A prompt file with three filled blanks sits on a shelf." width="880" />
 </picture>
 
 [![crates.io](https://img.shields.io/crates/v/promptshelf)](https://crates.io/crates/promptshelf)
