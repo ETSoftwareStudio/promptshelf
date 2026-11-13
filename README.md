@@ -59,7 +59,16 @@ Binaries for macOS, Linux and Windows are on the [releases page](https://github.
 
 Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`. The npm package is named `promptshelf-cli`, and it adds a third command with that name so `npx` can run it.
 
-The desktop app has no download yet. Build it from [`app/`](app/README.md).
+### Desktop app
+```sh
+brew install --cask etsoftwarestudio/tap/promptshelf-app   # macOS
+```
+
+Installers for macOS (`.dmg`), Windows (`.exe` and `.msi`) and Linux (`.AppImage` and `.deb`) are on the [releases page](https://github.com/ETSoftwareStudio/promptshelf/releases/latest).
+
+The app is not signed yet, so the first launch shows a warning:
+- **macOS** — Open the app once. Then open System Settings → Privacy & Security, and click Open Anyway.
+- **Windows** — On "Windows protected your PC", click More info, then Run anyway.
 
 ## Use
 ```sh
