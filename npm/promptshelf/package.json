@@ -1,5 +1,5 @@
 {
-  "name": "promptshelf",
+  "name": "promptshelf-cli",
   "version": "0.1.0",
   "description": "Save, fill and share prompts. Installs the shelf command.",
   "license": "MIT",
@@ -16,6 +16,7 @@
   ],
   "bin": {
     "promptshelf": "bin/shelf.js",
+    "promptshelf-cli": "bin/shelf.js",
     "shelf": "bin/shelf.js"
   },
   "files": [

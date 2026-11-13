@@ -20,7 +20,7 @@ fn home() -> Result<PathBuf> {
 pub fn command_note(exe: &Path) -> Option<String> {
     if cfg!(windows) {
         return Some(
-            "On Windows, install shelf with cargo; see the PromptShelf README.".into(),
+            "On Windows, install shelf with cargo or npm; see the PromptShelf README.".into(),
         );
     }
     if exe.to_string_lossy().contains("/AppTranslocation/") {

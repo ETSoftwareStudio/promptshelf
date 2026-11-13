@@ -53,6 +53,6 @@ Do these in order. Each one is hard to undo, so a person does them.
 4. In `.github/workflows/ci.yml` and `release.yml`, change the macOS runners from `[self-hosted, macOS, ARM64]` to `macos-latest`. Public repos never use the self-hosted runner.
 5. Add `aarch64-unknown-linux-musl` on `ubuntu-24.04-arm` to the build matrix.
 6. Publish `promptshelf-core` and `promptshelf` to crates.io once by hand (`cargo publish`), because trusted publishing needs the crates to exist. Then add this repo and `release.yml` as a trusted publisher for both crates.
-7. Publish the npm package once by hand from `npm/promptshelf`, then add the trusted publisher for it. npm rejected the name `promptshelf` for v0.1.0, because it is too similar to `prompt-shelf`. Pick a scoped name first; until then, the npm job fails when `PUBLISH` is `true`.
+7. Publish the npm package `promptshelf-cli` once by hand from `npm/promptshelf`, then add the trusted publisher for it. npm rejected the name `promptshelf`, because it is too similar to `prompt-shelf`.
 8. Create `ETSoftwareStudio/homebrew-tap` and the `HOMEBREW_TAP_TOKEN` secret.
 9. Set the repository variable `PUBLISH` to `true`.
