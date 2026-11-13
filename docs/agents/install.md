@@ -56,7 +56,14 @@ shelf check
 Then run `shelf check` again. It must print `OK`.
 
 ## 4. Teach yourself the commands
-- **Claude Code:** ask the person to run `shelf skill install` in their terminal. It writes `~/.claude/skills/promptshelf/SKILL.md`. If the person tells you to do it for them, write the output of `shelf skill print` to that file.
+Ask the person to run this in their terminal:
+```sh
+npx skills add ETSoftwareStudio/promptshelf -g
+```
+It asks which agents to install the skill for, then links each agent to one copy.
+
+If the person has no Node.js:
+- **Claude Code:** ask the person to run `shelf skill install`. It writes `~/.claude/skills/promptshelf/SKILL.md`. If the person tells you to do it for them, write the output of `shelf skill print` to that file.
 - **Other agents:** run `shelf skill print`. With the person's OK, add its text to the file your tool reads for instructions, for example `AGENTS.md` or a rules file.
 
 ## 5. Optional: apps with no shell
