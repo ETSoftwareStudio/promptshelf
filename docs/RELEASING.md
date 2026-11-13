@@ -8,8 +8,13 @@ Releases use [release-please](https://github.com/googleapis/release-please). Com
 3. Merge the release PR. The workflow then:
    - tags `vX.Y.Z` and creates the GitHub release;
    - builds `shelf` for macOS (Apple silicon and Intel), Linux (x86_64, static musl) and Windows (x86_64);
-   - uploads each archive with its SHA-256, and `checksums.txt`;
-   - publishes to crates.io and npm, and updates the Homebrew tap, when the repository variable `PUBLISH` is `true`.
+   - builds the desktop app installers with `app-bundles.yml`: a universal macOS `.dmg`, a Windows `.exe` and `.msi`, and a Linux `.AppImage` and `.deb`;
+   - uploads each archive and installer with its SHA-256, and `checksums.txt`;
+   - publishes to crates.io and npm, and updates the Homebrew tap, when the repository variable `PUBLISH` is `true`. The tap gets the `promptshelf` formula and the `promptshelf-app` cask.
+
+When the app installers fail, the CLI still publishes, and the tap keeps its old cask. A pull request that changes `app-bundles.yml` or `tauri.conf.json` builds the installers as a dry run. Download them from the run's artifacts to try them.
+
+The installers are not signed. The macOS app has an ad-hoc signature, so macOS offers Open Anyway instead of saying that the app is damaged.
 
 | Commit type | Version change before 1.0 |
 | --- | --- |

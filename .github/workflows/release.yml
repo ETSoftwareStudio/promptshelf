@@ -6,6 +6,9 @@ name: Release
 #
 # Publishing to crates.io, npm and Homebrew runs only when the repository
 # variable PUBLISH is "true". Until then a release only gets GitHub assets.
+#
+# The desktop app installers come from app-bundles.yml. When they fail, the
+# CLI still publishes: checksums, npm and homebrew need only the CLI builds.
 
 on:
   push:
@@ -136,8 +139,33 @@ jobs:
         if: always()
         run: rm -rf dist target/"$TARGET"/release
 
+  app:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/app-bundles.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+
+  app-upload:
+    needs: [release-please, app]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: app-*
+          path: dist
+          merge-multiple: true
+      - name: Upload the installers
+        run: gh release upload "$TAG" -R "$GITHUB_REPOSITORY" dist/* --clobber
+
   checksums:
-    needs: [release-please, build]
+    needs: [release-please, build, app-upload]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -176,7 +204,7 @@ jobs:
 
   npm:
     needs: [release-please, checksums]
-    if: needs.release-please.outputs.release_created == 'true' && vars.PUBLISH == 'true'
+    if: ${{ !cancelled() && needs.checksums.result == 'success' && vars.PUBLISH == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -204,7 +232,7 @@ jobs:
 
   homebrew:
     needs: [release-please, checksums]
-    if: needs.release-please.outputs.release_created == 'true' && vars.PUBLISH == 'true'
+    if: ${{ !cancelled() && needs.checksums.result == 'success' && vars.PUBLISH == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -221,11 +249,15 @@ jobs:
         run: |
           gh release download "$TAG" -p checksums.txt
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/ETSoftwareStudio/homebrew-tap.git" tap
-          mkdir -p tap/Formula
+          mkdir -p tap/Formula tap/Casks
           node packaging/homebrew/render.mjs "${TAG#v}" checksums.txt > tap/Formula/promptshelf.rb
+          # The cask follows only when the macOS app built.
+          if grep -q "PromptShelf-${TAG}-macos-universal.dmg" checksums.txt; then
+            node packaging/homebrew/render-cask.mjs "${TAG#v}" checksums.txt > tap/Casks/promptshelf-app.rb
+          fi
           cd tap
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/promptshelf.rb
+          git add Formula Casks
           git commit -m "promptshelf ${TAG#v}"
           git push
