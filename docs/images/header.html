@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Source of header-light.png and header-dark.png in this folder. Open it in Chrome at
+     880 × 248 with a device scale of 2, once per colour scheme, and save a PNG with a
+     transparent background. Colours are the app tokens from app/src/styles/tokens.css. -->
+<meta charset="utf-8" />
+<title>PromptShelf header</title>
+<link rel="stylesheet" href="../../app/src/fonts/source-serif-4/font.css" />
+<style>
+  :root {
+    --ground: oklch(99.4% 0.002 265);
+    --panel: oklch(97.2% 0.005 265);
+    --ink: oklch(22% 0.014 265);
+    --ink2: oklch(47% 0.014 265);
+    --edge: oklch(20% 0.02 265 / 0.14);
+    --shelf: oklch(78% 0.012 265);
+    --cursor: oklch(64% 0.16 60);
+    --c: oklch(52% 0.17 355);
+    --c-ink: oklch(36% 0.12 355);
+    --y: oklch(47% 0.15 255);
+    --y-bg: oklch(94.5% 0.012 255);
+    --y-ink: oklch(30% 0.04 255);
+    --g: oklch(48% 0.11 158);
+    --g-bg: oklch(93% 0.05 158);
+    --g-ink: oklch(31% 0.08 158);
+    --term: oklch(22% 0.014 265);
+    --term-ink: oklch(94% 0.006 265);
+    --term-dim: oklch(66% 0.012 265);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: oklch(19.5% 0.008 265);
+      --panel: oklch(23.5% 0.009 265);
+      --ink: oklch(94% 0.006 265);
+      --ink2: oklch(72% 0.012 265);
+      --edge: oklch(100% 0 0 / 0.11);
+      --shelf: oklch(38% 0.012 265);
+      --cursor: oklch(72% 0.15 60);
+      --c: oklch(76% 0.13 355);
+      --c-ink: oklch(92% 0.05 355);
+      --y: oklch(78% 0.1 255);
+      --y-bg: oklch(62% 0.06 255 / 0.22);
+      --y-ink: oklch(92% 0.03 255);
+      --g: oklch(76% 0.12 158);
+      --g-bg: oklch(68% 0.12 158 / 0.22);
+      --g-ink: oklch(91% 0.07 158);
+      --term: oklch(14% 0.008 265);
+      --term-ink: oklch(94% 0.006 265);
+      --term-dim: oklch(66% 0.012 265);
+    }
+    .icon-light { display: none; }
+  }
+  @media (prefers-color-scheme: light) { .icon-dark { display: none; } }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: transparent; }
+  body {
+    width: 880px; height: 248px; overflow: hidden; position: relative;
+    background: var(--ground); border-radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--ink);
+  }
+  .shelf {
+    position: absolute; left: 40px; right: 40px; bottom: 34px; height: 7px;
+    border-radius: 4px; background: var(--shelf);
+  }
+  .brand { position: absolute; left: 44px; top: 50px; width: 384px; }
+  .row { display: flex; align-items: center; gap: 16px; }
+  .row img { width: 64px; height: 64px; }
+  h1 {
+    font-family: "Source Serif 4", Georgia, serif; font-weight: 620;
+    font-size: 46px; letter-spacing: -0.01em; line-height: 1;
+    font-variation-settings: "opsz" 48;
+  }
+  .tag { margin-top: 22px; font-size: 14.5px; line-height: 1.45; color: var(--ink2); max-width: 384px; }
+
+  .card {
+    position: absolute; right: 44px; bottom: 41px; width: 392px;
+    background: var(--panel); border: 1px solid var(--edge); border-bottom: none;
+    border-radius: 10px 10px 0 0; padding: 18px 20px 20px;
+    font-family: "Source Serif 4", Georgia, serif; font-size: 17.5px; line-height: 1.75;
+    font-variation-settings: "opsz" 18;
+  }
+  .file {
+    font: 500 11.5px/1 "SF Mono", ui-monospace, Menlo, monospace; color: var(--ink2);
+    margin-bottom: 10px; letter-spacing: 0.01em;
+  }
+  .v { padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
+  .v sup { font: 600 10px -apple-system, sans-serif; margin-left: 2px; }
+  .open { border: 1px dashed var(--c); color: var(--c-ink); }
+  .open sup { color: var(--c); }
+  .typed { background: var(--y-bg); color: var(--y-ink); }
+  .typed sup { color: var(--y); }
+  .repo { background: var(--g-bg); color: var(--g-ink); }
+  .repo sup { color: var(--g); }
+
+  .term {
+    position: absolute; right: 300px; bottom: 150px;
+    background: var(--term); color: var(--term-ink); border-radius: 8px;
+    padding: 9px 14px; font: 13px/1 "SF Mono", ui-monospace, Menlo, monospace;
+    border: 1px solid var(--edge);
+  }
+  .term .p { color: var(--term-dim); margin-right: 8px; }
+</style>
+</head>
+<body>
+  <div class="brand">
+    <div class="row">
+      <img class="icon-light" src="../design/logo/promptshelf-icon-light.svg" alt="" />
+      <img class="icon-dark" src="../design/logo/promptshelf-icon-dark.svg" alt="" />
+      <h1>PromptShelf</h1>
+    </div>
+    <p class="tag">A prompt library for you and your coding agents.<br />Local files, synced with git, no account.</p>
+  </div>
+
+  <div class="card">
+    <div class="file">personal/strict-pr-review.md</div>
+    Review this diff like a strict senior reviewer. Focus on
+    <span class="v open">what worries you<sup>1</sup></span>. Report
+    <span class="v typed">blockers only<sup>2</sup></span> and skip style nits. The diff is
+    <span class="v repo">+214 −37 across 6 files<sup>3</sup></span>.
+  </div>
+
+  <div class="shelf"></div>
+</body>
+</html>

@@ -27,7 +27,6 @@
     ".": {
       "extra-files": [
         "Cargo.toml",
-        "README.md",
         {
           "type": "json",
           "path": "npm/promptshelf/package.json",
@@ -39,8 +38,7 @@
           "path": "app/package.json",
           "jsonpath": "$.version"
         }
-      ],
-      "release-as": "0.1.0"
+      ]
     }
   }
 }

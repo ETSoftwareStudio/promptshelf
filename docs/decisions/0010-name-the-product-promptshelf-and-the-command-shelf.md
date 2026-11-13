@@ -29,7 +29,7 @@ tags: [naming, cli, distribution]
 | Command | `shelf`, plus `promptshelf` as a long alias |
 | Repo | `ETSoftwareStudio/promptshelf` |
 | Crates | `promptshelf-core` (library) and `promptshelf` (the binaries) |
-| npm | `promptshelf` (`npx promptshelf`) |
+| npm | `promptshelf-cli` (`npx promptshelf-cli`) |
 | Homebrew | `promptshelf` |
 
 Each install puts both `shelf` and `promptshelf` on the PATH, the same way `ripgrep` installs `rg`.
@@ -54,5 +54,6 @@ Decisions 0001 to 0009 and the report use the working names. Read them with this
 - **Other users of the name (checked 2026-11-09)** — PromptShelf.ai (Talavera Solutions) returns 404. `promptshelf.io` (registered 2026-10-06) returns error 530. `promptshelf.com` (registered 2023) is a parked page. An iOS app "PromptShelf: AI Prompt Library" (July 2026) is live with 1 rating. A Chrome extension called PromptShelf exists. The owner accepted this risk. No trademark filing showed up in a web search; the USPTO database itself was not searched.
 - **Command clash** — [maytees/shelf](https://github.com/maytees/shelf) (2 stars, last push 2025-09-02) also installs a `shelf` command. The `promptshelf` alias still works if both are installed.
 - **Domain** — No domain yet. `promptshelf.com` may be for sale.
+- **npm name** — npm rejected `promptshelf` at v0.1.0, because it is too similar to `prompt-shelf`. The npm package is `promptshelf-cli`. Its folder stays `npm/promptshelf`.
 - **npx** — `promptshelf` is a Rust binary. The npm package is a small wrapper that installs the binary for each system, as Biome does. This is part of the v0.1 work.
 - **Closes** — Open item #54.

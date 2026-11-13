@@ -1,8 +1,21 @@
-# PromptShelf
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/header-dark.png" />
+  <img src="docs/images/header-light.png" alt="PromptShelf: a prompt library for you and your coding agents. Local files, synced with git, no account. A prompt file with three filled blanks sits on a shelf." width="880" />
+</picture>
+
+[![crates.io](https://img.shields.io/crates/v/promptshelf)](https://crates.io/crates/promptshelf)
+[![GitHub release](https://img.shields.io/github/v/release/ETSoftwareStudio/promptshelf)](https://github.com/ETSoftwareStudio/promptshelf/releases/latest)
+[![CI](https://github.com/ETSoftwareStudio/promptshelf/actions/workflows/ci.yml/badge.svg)](https://github.com/ETSoftwareStudio/promptshelf/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/github/license/ETSoftwareStudio/promptshelf)](LICENSE)
 
 A local-first library to save, template, reuse and share prompts. Prompts are Markdown files in a folder you own, synced with git. The `shelf` command finds and fills them, for you and for coding agents.
 
-**Status:** not released yet. The CLI, the terminal app, the desktop app, the MCP server and the Raycast extension all work from source.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/app-dark.png" />
+  <img src="docs/images/app-light.png" alt="The desktop app. The sidebar lists pins, kinds and libraries. The prompt Strict PR review is open, with one blank left for the model, one chosen value and one value from git." width="1100" />
+</picture>
+
+Each blank shows where its value comes from. Rose means the model fills it from the chat. Blue is a value you chose. Green comes from your repo or a command.
 
 ## What it has
 - **`shelf` CLI** — Search, show and fill prompts. Every command has `--json` output for agents.
@@ -10,6 +23,13 @@ A local-first library to save, template, reuse and share prompts. Prompts are Ma
 - **Desktop app** — macOS, Windows and Linux, with a tray panel and a global shortcut. Everything works from the app: set up, add team libraries, sync, propose changes and connect agents, with no terminal.
 - **Agents** — A Claude Code skill, and `shelf mcp` for apps with no shell.
 - **Sync and sharing** — Plain git. No server, no account, no telemetry.
+
+The tray panel opens with a global shortcut and fills a prompt without leaving your app.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/panel-dark.png" />
+  <img src="docs/images/panel-light.png" alt="The tray panel filling Strict PR review, with Send at the bottom." width="400" />
+</picture>
 
 ## Set up with an AI agent
 Copy one of these prompts into your coding agent (Claude Code, Codex, Cursor and others). The agent follows the linked steps. It asks you before the steps that need you, such as creating your library.
@@ -29,23 +49,17 @@ https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/
 Agents that read [`llms.txt`](llms.txt) get a short summary and links to both.
 
 ## Install
-Not released yet. Until then, build it from source:
-
-```sh
-cargo install --locked --git https://github.com/ETSoftwareStudio/promptshelf promptshelf
-```
-
-After the first release:
-
-<!-- x-release-please-start-version -->
 ```sh
 brew install etsoftwarestudio/tap/promptshelf   # macOS and Linux
-cargo install promptshelf --version 0.1.0       # any system with Rust
-npx promptshelf@0.1.0 --help                    # try it without installing
+cargo install --locked promptshelf              # any system with Rust
+npx promptshelf-cli --help                      # try it without installing
 ```
-<!-- x-release-please-end -->
 
-Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`.
+Binaries for macOS, Linux and Windows are on the [releases page](https://github.com/ETSoftwareStudio/promptshelf/releases/latest).
+
+Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`. The npm package is named `promptshelf-cli`, and it adds a third command with that name so `npx` can run it.
+
+The desktop app has no download yet. Build it from [`app/`](app/README.md).
 
 ## Use
 ```sh

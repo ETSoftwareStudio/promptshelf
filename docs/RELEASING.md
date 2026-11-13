@@ -19,12 +19,11 @@ Releases use [release-please](https://github.com/googleapis/release-please). Com
 | `build:`, `ci:`, `docs:`, `chore:`, `test:` | none |
 
 ## The first release
-`release-please-config.json` has `"release-as": "0.1.0"`, because release-please would start at 1.0.0. Remove that line after v0.1.0 is released, or every release stays 0.1.0.
+v0.1.0 used `"release-as": "0.1.0"` in `release-please-config.json`, because release-please would start at 1.0.0. That line is gone, so later versions follow the commits.
 
 ## Where the version lives
 release-please updates every file listed in `release-please-config.json`:
 - `Cargo.toml`: the lines that end with `# x-release-please-version`.
-- `README.md`: the install snippet between the `x-release-please` markers.
 - `npm/promptshelf/package.json`: `version`.
 - `app/src-tauri/Cargo.toml`: the line that ends with `# x-release-please-version`. The desktop app shows this version in Settings → About.
 - `app/package.json`: `version`.
@@ -54,6 +53,6 @@ Do these in order. Each one is hard to undo, so a person does them.
 4. In `.github/workflows/ci.yml` and `release.yml`, change the macOS runners from `[self-hosted, macOS, ARM64]` to `macos-latest`. Public repos never use the self-hosted runner.
 5. Add `aarch64-unknown-linux-musl` on `ubuntu-24.04-arm` to the build matrix.
 6. Publish `promptshelf-core` and `promptshelf` to crates.io once by hand (`cargo publish`), because trusted publishing needs the crates to exist. Then add this repo and `release.yml` as a trusted publisher for both crates.
-7. Publish the npm package once by hand from `npm/promptshelf`, then add the trusted publisher for it.
+7. Publish the npm package `promptshelf-cli` once by hand from `npm/promptshelf`, then add the trusted publisher for it. npm rejected the name `promptshelf`, because it is too similar to `prompt-shelf`.
 8. Create `ETSoftwareStudio/homebrew-tap` and the `HOMEBREW_TAP_TOKEN` secret.
 9. Set the repository variable `PUBLISH` to `true`.
