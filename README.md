@@ -67,8 +67,16 @@ shelf init                          # create ~/Prompts/personal
 shelf new "Strict PR review"        # write a prompt in $EDITOR
 shelf                               # the terminal app: search, fill, copy
 shelf fill strict-pr-review --var focus="error handling"
-shelf skill install                 # teach Claude Code the commands
 ```
+
+### Teach your agents the commands
+```sh
+npx skills add ETSoftwareStudio/promptshelf -g
+```
+
+[skills.sh](https://skills.sh) installs the PromptShelf skill for each agent you pick, such as Claude Code, Codex and Cursor. It keeps one copy and links each agent to it. To get a newer version later, run `npx skills update -g`.
+
+With no Node.js, run `shelf skill install`. It writes the skill for Claude Code only.
 
 Every command takes `--json`. Agents with no terminal can read, fill and save drafts; other writes need a person.
 

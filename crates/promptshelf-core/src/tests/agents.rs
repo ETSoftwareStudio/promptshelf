@@ -9,6 +9,15 @@ fn installs_the_skill() {
     assert!(skill_current(dir.path()));
 }
 
+/// `npx skills add` reads skills/promptshelf/SKILL.md from the repo.
+#[test]
+fn the_repo_skill_matches_the_built_in_skill() {
+    let repo_skill = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../skills/promptshelf/SKILL.md");
+    let text = std::fs::read_to_string(repo_skill).unwrap();
+    assert_eq!(text, SKILL_MD, "copy SKILL_MD to skills/promptshelf/SKILL.md");
+}
+
 #[test]
 fn adds_the_mcp_server_and_keeps_the_rest() {
     let dir = tempfile::tempdir().unwrap();
