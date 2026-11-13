@@ -5,7 +5,7 @@
 
 ### Fixes
 
-* **app:** stop suggesting npm to install shelf on Windows ([10a9937](https://github.com/ETSoftwareStudio/promptshelf/commit/10a993745c8215a0da11436fac3c2da6efad2dba))
+* **npm:** publish as `promptshelf-cli`; `npx promptshelf-cli` works, and the app suggests cargo or npm on Windows ([0b5c6cd](https://github.com/ETSoftwareStudio/promptshelf/commit/0b5c6cd))
 
 ## 0.1.0 (2026-11-11)
 
