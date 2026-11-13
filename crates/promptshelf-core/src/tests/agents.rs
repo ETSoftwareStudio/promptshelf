@@ -12,10 +12,16 @@ fn installs_the_skill() {
 /// `npx skills add` reads skills/promptshelf/SKILL.md from the repo.
 #[test]
 fn the_repo_skill_matches_the_built_in_skill() {
-    let repo_skill = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../skills/promptshelf/SKILL.md");
-    let text = std::fs::read_to_string(repo_skill).unwrap();
-    assert_eq!(text, SKILL_MD, "copy SKILL_MD to skills/promptshelf/SKILL.md");
+    let repo_skill =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../skills/promptshelf/SKILL.md");
+    // Windows checkouts can turn LF into CRLF.
+    let text = std::fs::read_to_string(repo_skill)
+        .unwrap()
+        .replace("\r\n", "\n");
+    assert_eq!(
+        text, SKILL_MD,
+        "copy SKILL_MD to skills/promptshelf/SKILL.md"
+    );
 }
 
 #[test]
