@@ -1,6 +1,6 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/header-dark.png" />
-  <img src="docs/images/header-light.png" alt="PromptShelf: prompt templates for you and your coding agents. Plain Markdown in a folder you own, shared with git. A prompt file with three filled blanks sits on a shelf." width="880" />
+  <img src="docs/images/header-light.png" alt="PromptShelf: a prompt library for you and your coding agents. Local files, synced with git, no account. A prompt file with three filled blanks sits on a shelf." width="880" />
 </picture>
 
 [![crates.io](https://img.shields.io/crates/v/promptshelf)](https://crates.io/crates/promptshelf)
@@ -52,11 +52,12 @@ Agents that read [`llms.txt`](llms.txt) get a short summary and links to both.
 ```sh
 brew install etsoftwarestudio/tap/promptshelf   # macOS and Linux
 cargo install --locked promptshelf              # any system with Rust
+npx promptshelf-cli --help                      # try it without installing
 ```
 
 Binaries for macOS, Linux and Windows are on the [releases page](https://github.com/ETSoftwareStudio/promptshelf/releases/latest).
 
-Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`.
+Each install puts two commands on your PATH: `shelf`, and `promptshelf` for systems where another tool owns `shelf`. The npm package is named `promptshelf-cli`, and it adds a third command with that name so `npx` can run it.
 
 The desktop app has no download yet. Build it from [`app/`](app/README.md).
 
