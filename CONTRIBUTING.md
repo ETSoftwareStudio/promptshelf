@@ -15,3 +15,10 @@ Use only crates with a permissive licence: MIT, Apache-2.0, BSD or ISC. CI check
 
 ## Commits
 Use [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(cli): add shelf search`.
+
+## Merging
+`main` takes changes only through pull requests. A ruleset on `main` enforces this:
+- **Checks** — CI (`lint`, `test` on three systems, `licences`, `npm`, `raycast`, `secrets`) and the desktop app checks (`app` on three systems, `app licences`) must pass.
+- **Squash merge** — Each pull request becomes one commit, so `main` has a linear history. The pull request title becomes the commit subject, so it must be a Conventional Commit too.
+- **Conversations** — Resolve every review conversation before you merge.
+- **No force push** — Nobody can force-push to `main` or delete it.

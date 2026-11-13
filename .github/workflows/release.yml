@@ -68,10 +68,13 @@ jobs:
             git commit -am "build: update the Cargo.lock files for the release"
             git push
           fi
+      # main requires the CI and desktop app checks on every pull request.
       - name: Run CI on the release PR
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run ci.yml --ref "$RELEASE_BRANCH"
+        run: |
+          gh workflow run ci.yml --ref "$RELEASE_BRANCH"
+          gh workflow run desktop.yml --ref "$RELEASE_BRANCH"
 
   build:
     needs: release-please

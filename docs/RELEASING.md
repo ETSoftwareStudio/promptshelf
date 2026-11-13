@@ -4,7 +4,7 @@ Releases use [release-please](https://github.com/googleapis/release-please). Com
 
 ## How a release happens
 1. Merge pull requests into `main`. A `feat:` or `fix:` commit makes release-please open or update the release PR, "chore(main): release X.Y.Z". It holds the version bump and the changelog.
-2. The release workflow updates `Cargo.lock` and `app/src-tauri/Cargo.lock` on the release PR and starts CI on it.
+2. The release workflow updates `Cargo.lock` and `app/src-tauri/Cargo.lock` on the release PR. Then it starts CI and the desktop app checks on it, because `main` requires them.
 3. Merge the release PR. The workflow then:
    - tags `vX.Y.Z` and creates the GitHub release;
    - builds `shelf` for macOS (Apple silicon and Intel), Linux (x86_64, static musl) and Windows (x86_64);
