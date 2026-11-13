@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.1.0...v0.1.1) (2026-11-13)
+
+
+### Fixes
+
+* **npm:** publish as `promptshelf-cli`; `npx promptshelf-cli` works, and the app suggests cargo or npm on Windows ([0b5c6cd](https://github.com/ETSoftwareStudio/promptshelf/commit/0b5c6cd))
+
 ## 0.1.0 (2026-11-11)
 
 
