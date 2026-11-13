@@ -200,8 +200,10 @@ images.forEach((img, i) => {
 });
 writeFileSync(join(OUT_APP, 'icon.ico'), Buffer.concat([head, ...images]));
 
-// macOS: Tauri compiles AppIcon.icon into Assets.car when it bundles the app (it is listed in tauri.conf.json).
-// Here actool compiles it once more only to get icon.icns, the fallback for macOS before 26.
+// macOS: actool compiles AppIcon.icon into Assets.car (the Liquid Glass icon) and icon.icns (the
+// fallback for macOS before 26). The bundle copies Assets.car as it is (bundle.macOS.files in
+// tauri.conf.json), because actool fails on CI runners. Info.plist names the icon "AppIcon".
+// Run this on a Mac with Xcode 27 or later, and commit Assets.car with the other icons.
 const ICTOOL = '/Applications/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool';
 if (process.platform === 'darwin') {
   const out = join(TMP, 'actool');
@@ -210,6 +212,7 @@ if (process.platform === 'darwin') {
     '--minimum-deployment-target', '11.0', '--output-partial-info-plist', join(out, 'partial.plist'),
     '--output-format', 'human-readable-text', '--errors', '--warnings']);
   renameSync(join(out, 'AppIcon.icns'), join(OUT_APP, 'icon.icns'));
+  renameSync(join(out, 'Assets.car'), join(OUT_APP, 'Assets.car'));
 
   const at = process.argv.indexOf('--preview');
   if (at !== -1) {

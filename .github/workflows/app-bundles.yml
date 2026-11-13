@@ -34,10 +34,9 @@ jobs:
       matrix:
         include:
           # The repo is public, so macOS jobs use GitHub's runners, never the studio's own Mac.
-          # The app icon (AppIcon.icon) comes from Icon Composer 27. The actool in
-          # Xcode 26 crashes on it, so this job needs the Xcode 27 image (preview).
+          # The bundle copies the committed icons/Assets.car, because actool fails here.
           - os: macos
-            runs-on: xcode-27
+            runs-on: macos-latest
             rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
             args: --target universal-apple-darwin --bundles dmg
           - os: windows
