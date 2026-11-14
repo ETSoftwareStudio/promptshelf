@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.2.0...v0.2.1) (2026-11-14)
+
+
+### Fixes
+
+* **app:** sign and notarise the macOS app ([#28](https://github.com/ETSoftwareStudio/promptshelf/issues/28)) ([77aed2c](https://github.com/ETSoftwareStudio/promptshelf/commit/77aed2c40ac3572536ccb6dd189fd29dd79c9eeb))
+
 ## [0.2.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.1.1...v0.2.0) (2026-11-13)
 
 
