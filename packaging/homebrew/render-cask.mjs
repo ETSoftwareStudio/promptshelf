@@ -37,10 +37,5 @@ cask "promptshelf-app" do
     "~/Library/Preferences/studio.etsoftware.promptshelf.plist",
     "~/Library/WebKit/studio.etsoftware.promptshelf",
   ]
-
-  caveats <<~EOS
-    PromptShelf is not signed yet, so macOS blocks it the first time it opens.
-    To allow it, open System Settings > Privacy & Security, then click Open Anyway.
-  EOS
 end
 `);
