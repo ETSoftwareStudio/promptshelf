@@ -14,7 +14,7 @@ Releases use [release-please](https://github.com/googleapis/release-please). Com
 
 When the app installers fail, the CLI still publishes, and the tap keeps its old cask. A pull request that changes `app-bundles.yml` or `tauri.conf.json` builds the installers as a dry run. Download them from the run's artifacts to try them.
 
-The installers are not signed. The macOS app has an ad-hoc signature, so macOS offers Open Anyway instead of saying that the app is damaged.
+The macOS app is signed with a Developer ID, and Apple notarises the app and the disk image. When a signing secret is missing, the macOS installer fails, and the tap keeps its old cask. To test signing before a release, start the App installers workflow by hand on a branch, with `sign` on. Pull request dry runs are not signed: the app gets an ad-hoc signature. The Windows and Linux installers are not signed.
 
 | Commit type | Version change before 1.0 |
 | --- | --- |
@@ -48,6 +48,17 @@ cargo metadata --locked --format-version 1 --manifest-path app/src-tauri/Cargo.t
 
 ## Secrets
 None are stored for crates.io or npm. Both use trusted publishing with GitHub's OIDC identity. The Homebrew tap needs `HOMEBREW_TAP_TOKEN`: a fine-grained token with write access to `ETSoftwareStudio/homebrew-tap` only.
+
+The macOS app needs these secrets to sign and notarise:
+
+| Secret | Value |
+| --- | --- |
+| `MAC_CERTIFICATE` | The Developer ID Application certificate and its private key, as a `.p12` file in base64 |
+| `MAC_CERTIFICATE_PASSWORD` | The password of the `.p12` file |
+| `MAC_SIGNING_IDENTITY` | The certificate name, for example `Developer ID Application: <name> (<team id>)` |
+| `APPLE_API_KEY_P8` | The App Store Connect API key: the text of the `.p8` file |
+| `APPLE_API_KEY_ID` | The ID of that key |
+| `APPLE_API_ISSUER` | The issuer ID from App Store Connect → Users and Access → Integrations |
 
 ## Before the first public release
 Do these in order. Each one is hard to undo, so a person does them.

@@ -57,7 +57,7 @@ To try links in the browser mock, add `#link-open`, `#link-fill`, `#link-search`
 
 The app links the CLI. When it runs under the name `shelf`, it is the CLI. Settings → Agents → Install makes `~/.local/bin/shelf` a link to the app, and adds `~/.local/bin` to `PATH` in your shell profile (`~/.zprofile` for zsh) when no profile names it.
 
-A link, not a copy, because the app is not signed yet: macOS checks a copied program again, and the link runs the app you already opened. Move the app to Applications first; macOS runs an app from Downloads in a temporary folder, and the app refuses to link to that. On Windows, install `shelf` with cargo or npm.
+A link, not a copy, so the command always runs the app you installed. Move the app to Applications first; macOS runs an app from Downloads in a temporary folder, and the app refuses to link to that. On Windows, install `shelf` with cargo or npm.
 
 ## Source colours
 

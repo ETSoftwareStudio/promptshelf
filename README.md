@@ -66,9 +66,7 @@ brew install --cask etsoftwarestudio/tap/promptshelf-app   # macOS
 
 Installers for macOS (`.dmg`), Windows (`.exe` and `.msi`) and Linux (`.AppImage` and `.deb`) are on the [releases page](https://github.com/ETSoftwareStudio/promptshelf/releases/latest).
 
-The app is not signed yet, so the first launch shows a warning:
-- **macOS** — Open the app once. Then open System Settings → Privacy & Security, and click Open Anyway.
-- **Windows** — On "Windows protected your PC", click More info, then Run anyway.
+The macOS app is signed with a Developer ID and notarised by Apple. The Windows installers are not signed yet, so the first launch shows "Windows protected your PC". Click More info, then Run anyway.
 
 ## Use
 ```sh
