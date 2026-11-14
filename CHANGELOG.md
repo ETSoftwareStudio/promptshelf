@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.1.1...v0.2.0) (2026-11-13)
+
+
+### Features
+
+* **app:** publish installers with each release ([#25](https://github.com/ETSoftwareStudio/promptshelf/issues/25)) ([a5a80f4](https://github.com/ETSoftwareStudio/promptshelf/commit/a5a80f40250ba49f84920cd650361601cec90a42))
+
 ## [0.1.1](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.1.0...v0.1.1) (2026-11-13)
 
 

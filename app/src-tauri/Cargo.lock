@@ -3353,7 +3353,7 @@ dependencies = [
 
 [[package]]
 name = "promptshelf"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "clap",
  "promptshelf-core",
@@ -3364,7 +3364,7 @@ dependencies = [
 
 [[package]]
 name = "promptshelf-core"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "regex",
  "serde",
@@ -3376,7 +3376,7 @@ dependencies = [
 
 [[package]]
 name = "promptshelf-desktop"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "promptshelf",
  "promptshelf-core",
