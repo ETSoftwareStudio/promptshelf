@@ -5,9 +5,12 @@ name: App installers
 # GitHub release. A pull request that changes this file or the Tauri config
 # runs it as a dry run, so a broken build shows up before a release.
 #
-# The installers are not signed yet. The macOS app gets an ad-hoc signature
-# (bundle.macOS.signingIdentity "-"), so macOS shows "Open Anyway" for it
-# instead of saying that the app is damaged.
+# With `sign`, the macOS app gets a Developer ID signature, and Apple notarises
+# the app and the disk image. A signed build fails when a signing secret is
+# missing. Without `sign`, the app gets an ad-hoc signature
+# (bundle.macOS.signingIdentity "-"). To test signing on a branch, start this
+# workflow by hand with `sign` on. The Windows and Linux installers are not
+# signed.
 
 on:
   workflow_call:
@@ -16,6 +19,29 @@ on:
         description: The release tag, for example v0.2.0.
         required: true
         type: string
+      sign:
+        description: Sign and notarise the macOS app.
+        type: boolean
+        default: false
+    secrets:
+      MAC_CERTIFICATE:
+        required: false
+      MAC_CERTIFICATE_PASSWORD:
+        required: false
+      MAC_SIGNING_IDENTITY:
+        required: false
+      APPLE_API_KEY_P8:
+        required: false
+      APPLE_API_KEY_ID:
+        required: false
+      APPLE_API_ISSUER:
+        required: false
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Sign and notarise the macOS app.
+        type: boolean
+        default: false
   pull_request:
     paths:
       - .github/workflows/app-bundles.yml
@@ -77,7 +103,57 @@ jobs:
           cache: true
       - name: Build
         working-directory: app
-        run: vp exec tauri build ${{ matrix.args }}
+        env:
+          SIGN: ${{ inputs.sign && matrix.os == 'macos' }}
+          MAC_CERTIFICATE: ${{ inputs.sign && secrets.MAC_CERTIFICATE || '' }}
+          MAC_CERTIFICATE_PASSWORD: ${{ inputs.sign && secrets.MAC_CERTIFICATE_PASSWORD || '' }}
+          MAC_SIGNING_IDENTITY: ${{ inputs.sign && secrets.MAC_SIGNING_IDENTITY || '' }}
+          APPLE_API_KEY_P8: ${{ inputs.sign && secrets.APPLE_API_KEY_P8 || '' }}
+          APPLE_API_KEY_ID: ${{ inputs.sign && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ inputs.sign && secrets.APPLE_API_ISSUER || '' }}
+        run: |
+          if [ "$SIGN" = true ]; then
+            for name in MAC_CERTIFICATE MAC_CERTIFICATE_PASSWORD MAC_SIGNING_IDENTITY \
+              APPLE_API_KEY_P8 APPLE_API_KEY_ID APPLE_API_ISSUER; do
+              if [ -z "${!name}" ]; then
+                echo "::error::The secret $name is missing, so the app cannot be signed."
+                exit 1
+              fi
+            done
+            # Tauri signs with these, then notarises the app with the App Store Connect key.
+            # APPLE_SIGNING_IDENTITY replaces the "-" in tauri.conf.json.
+            export APPLE_CERTIFICATE="$MAC_CERTIFICATE"
+            export APPLE_CERTIFICATE_PASSWORD="$MAC_CERTIFICATE_PASSWORD"
+            export APPLE_SIGNING_IDENTITY="$MAC_SIGNING_IDENTITY"
+            printf '%s' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/apple-api-key.p8"
+            export APPLE_API_KEY="$APPLE_API_KEY_ID" APPLE_API_KEY_PATH="$RUNNER_TEMP/apple-api-key.p8"
+          else
+            unset APPLE_API_KEY_ID APPLE_API_ISSUER
+          fi
+          vp exec tauri build ${{ matrix.args }}
+          rm -f "$RUNNER_TEMP/apple-api-key.p8"
+      # Tauri notarises the app, but not the disk image around it. Gatekeeper rejects an
+      # unnotarised disk image that a browser downloaded.
+      - name: Notarise the disk image
+        if: inputs.sign && matrix.os == 'macos'
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          key="$RUNNER_TEMP/notary-key.p8"
+          printf '%s' "$APPLE_API_KEY_P8" > "$key"
+          for dmg in app/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg; do
+            status=$(xcrun notarytool submit "$dmg" --key "$key" --key-id "$APPLE_API_KEY_ID" \
+              --issuer "$APPLE_API_ISSUER" --wait --output-format json | jq -r .status)
+            if [ "$status" != Accepted ]; then
+              echo "::error::Notarisation of $dmg ended as $status."
+              exit 1
+            fi
+            xcrun stapler staple "$dmg"
+            spctl -a -t open --context context:primary-signature -v "$dmg"
+          done
+          rm -f "$key"
       - name: Name the installers
         run: |
           out="app/src-tauri/target"
