@@ -104,7 +104,8 @@ jobs:
       - name: Build
         working-directory: app
         env:
-          SIGN: ${{ inputs.sign && matrix.os == 'macos' }}
+          # Not SIGN: linuxdeploy-plugin-appimage GPG-signs the AppImage when SIGN has any value.
+          SIGN_MAC: ${{ inputs.sign && matrix.os == 'macos' }}
           MAC_CERTIFICATE: ${{ inputs.sign && secrets.MAC_CERTIFICATE || '' }}
           MAC_CERTIFICATE_PASSWORD: ${{ inputs.sign && secrets.MAC_CERTIFICATE_PASSWORD || '' }}
           MAC_SIGNING_IDENTITY: ${{ inputs.sign && secrets.MAC_SIGNING_IDENTITY || '' }}
@@ -112,7 +113,7 @@ jobs:
           APPLE_API_KEY_ID: ${{ inputs.sign && secrets.APPLE_API_KEY_ID || '' }}
           APPLE_API_ISSUER: ${{ inputs.sign && secrets.APPLE_API_ISSUER || '' }}
         run: |
-          if [ "$SIGN" = true ]; then
+          if [ "$SIGN_MAC" = true ]; then
             for name in MAC_CERTIFICATE MAC_CERTIFICATE_PASSWORD MAC_SIGNING_IDENTITY \
               APPLE_API_KEY_P8 APPLE_API_KEY_ID APPLE_API_ISSUER; do
               if [ -z "${!name}" ]; then
