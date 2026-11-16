@@ -23,6 +23,7 @@ mod tests_common;
 
 use tauri::{AppHandle, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+use tauri_plugin_window_state::StateFlags;
 
 use commands::AppState;
 use settings::Settings;
@@ -52,6 +53,15 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
+        // The library window opens at the size and place it had. Not its
+        // visibility: closing it only hides it, and it must show at start.
+        // The panel and Settings place themselves.
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(StateFlags::SIZE | StateFlags::POSITION | StateFlags::MAXIMIZED)
+                .with_denylist(&[windows::PANEL, windows::SETTINGS])
+                .build(),
+        )
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
