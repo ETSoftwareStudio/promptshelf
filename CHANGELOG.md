@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.2.1...v0.3.0) (2026-11-16)
+
+
+### Features
+
+* **app:** resizable library columns and window state ([#30](https://github.com/ETSoftwareStudio/promptshelf/issues/30)) ([bac0602](https://github.com/ETSoftwareStudio/promptshelf/commit/bac06024e3cf47b305f97a7462bdb5957f3cc350))
+
 ## [0.2.1](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.2.0...v0.2.1) (2026-11-14)
 
 
