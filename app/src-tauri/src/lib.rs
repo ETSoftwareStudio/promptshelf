@@ -102,6 +102,7 @@ pub fn run() {
             commands::get_settings,
             commands::set_settings,
             commands::open_window,
+            commands::sidebar_shown,
             commands::hide_panel,
             commands::open_url,
             commands::pick_folder,

@@ -171,6 +171,12 @@ pub async fn set_settings(
     Ok(settings_view(&state))
 }
 
+/// The library window shows or hid its sidebar: the View menu follows.
+#[tauri::command]
+pub async fn sidebar_shown(app: AppHandle, shown: bool) -> CmdResult<()> {
+    crate::menu::set_sidebar_label(&app, shown).map_err(|e| e.to_string())
+}
+
 /// Opens one of the app's windows: "library", "settings" or "panel". For
 /// Settings, `tab` picks the tab.
 #[tauri::command]

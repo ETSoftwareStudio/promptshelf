@@ -106,6 +106,8 @@ export const api = {
   openWindow: (name: "library" | "settings" | "panel", tab?: "libraries" | "agents" | "about") =>
     call<void>("open_window", { name, tab: tab ?? null }),
   hidePanel: () => call<void>("hide_panel"),
+  /** Names the View menu's sidebar item for the sidebar's state. */
+  sidebarShown: (shown: boolean) => call<void>("sidebar_shown", { shown }),
   /** The `promptshelf://` link that waits for the library window, once. */
   takeLink: () => call<Link | null>("take_link"),
   /** Tells the log what the library window did with a link. */

@@ -125,6 +125,11 @@
     saveCols();
   }
 
+  // The View menu says Show Sidebar or Hide Sidebar.
+  $effect(() => {
+    void api.sidebarShown(!cols.sideHidden).catch(() => {});
+  });
+
   async function loadOverview() {
     try {
       overview = await api.overview();
@@ -564,6 +569,7 @@
           if (!sheet && !syncSheet && !leaving) startDraft();
         } else if (id === "sync") void sync();
         else if (id === "find") searchEl?.focus();
+        else if (id === "toggle-sidebar") toggleSidebar();
       }),
     ];
     return () => stops.forEach((s) => s());
