@@ -1,7 +1,7 @@
 //! The native menu bar and the tray icon with its menu.
 
 use tauri::image::Image;
-use tauri::menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, MenuItemKind, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Runtime};
 
@@ -11,6 +11,8 @@ use crate::{about, windows};
 pub const NEW_PROMPT: &str = "new-prompt";
 pub const SYNC: &str = "sync";
 pub const FIND: &str = "find";
+pub const TOGGLE_SIDEBAR: &str = "toggle-sidebar";
+const VIEW: &str = "view";
 const SETTINGS: &str = "settings";
 const LIBRARY: &str = "library";
 const PANEL: &str = "panel";
@@ -72,6 +74,19 @@ pub fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         .separator()
         .item(&find)
         .build()?;
+    // The library window says whether its sidebar shows (`set_sidebar_label`).
+    let sidebar = MenuItemBuilder::with_id(TOGGLE_SIDEBAR, "Hide Sidebar")
+        .accelerator(if cfg!(target_os = "macos") {
+            "Ctrl+Cmd+S"
+        } else {
+            "Ctrl+Alt+S"
+        })
+        .build(app)?;
+    let view = SubmenuBuilder::with_id(app, VIEW, "View")
+        .item(&sidebar)
+        .separator()
+        .fullscreen()
+        .build()?;
     let window = SubmenuBuilder::new(app, "Window")
         .minimize()
         .item(
@@ -89,9 +104,25 @@ pub fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     }
     menu.item(&file.build()?)
         .item(&edit)
+        .item(&view)
         .item(&window)
         .item(&help.build()?)
         .build()
+}
+
+/// Names the View menu's sidebar item for what it does next.
+pub fn set_sidebar_label<R: Runtime>(app: &AppHandle<R>, shown: bool) -> tauri::Result<()> {
+    let Some(MenuItemKind::Submenu(view)) = app.menu().and_then(|m| m.get(VIEW)) else {
+        return Ok(());
+    };
+    if let Some(MenuItemKind::MenuItem(item)) = view.get(TOGGLE_SIDEBAR) {
+        item.set_text(if shown {
+            "Hide Sidebar"
+        } else {
+            "Show Sidebar"
+        })?;
+    }
+    Ok(())
 }
 
 /// Handles a click on the menu bar or the tray menu.
@@ -111,7 +142,7 @@ pub fn on_menu_event(app: &AppHandle, event: MenuEvent) {
         REPORT => {
             let _ = about::open(&about::issue_url());
         }
-        id @ (NEW_PROMPT | FIND) => {
+        id @ (NEW_PROMPT | FIND | TOGGLE_SIDEBAR) => {
             windows::show_library(app);
             let _ = app.emit_to(windows::LIBRARY, "menu", id);
         }

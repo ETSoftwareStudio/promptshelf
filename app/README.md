@@ -47,7 +47,7 @@ Any web page can open a link, so the app treats every link as untrusted.
 - **Open sheets stay** — While a sheet, the editor or a new prompt is open, a link only shows a message.
 - **Other links** — A bad link, a missing prompt or another route (`import` is kept for sharing) shows a message such as "PromptShelf can't open this link: no prompt personal/foo". Nothing else happens.
 
-On Windows and Linux, a link sent to a running app goes to that app; it does not start a second copy. The installers register the scheme. An AppImage registers it when it starts. A development build (`vp run tauri dev`) does not register it.
+On Windows and Linux, a link sent to a running app goes to that app; it does not start a second copy. The installers register the scheme. An AppImage registers it when it starts. A development build (`vp run dev:app`) does not register it.
 
 The app writes each link and what it did to stderr, for example `PromptShelf: link handled: selected personal/welcome`. Search and title text are not written.
 
@@ -74,7 +74,7 @@ You need Rust, [Vite+](https://viteplus.dev) (`vp`) and, on Linux, the Tauri sys
 
 1. Install the packages: `vp install`.
 2. Run the UI alone in a browser, with made-up prompts: `vp dev`, then open http://localhost:5173 (`panel.html` and `settings.html` are the other windows). Words in the URL hash show other cases, for example `/#firstrun`, `/#conflict`, `/settings.html#libraries,pusherror` or `#nogit`; `src/lib/mock-state.ts` lists them.
-3. Run the real app: `vp run tauri dev`.
+3. Run the real app: `vp run dev:app`. This build has its own app ID (`src-tauri/tauri.dev.conf.json`), so it runs next to an installed PromptShelf. It still uses your settings and libraries, and only one copy gets the quick-panel shortcut.
 4. Before a pull request, run `vp check`, `vp run check`, `vp test` and `vp build`. In `src-tauri`, run `cargo clippy --all-targets -- -D warnings` and `cargo test`.
 
 To try the app without your own libraries, set `PROMPTSHELF_CONFIG_DIR` and `PROMPTSHELF_STATE_DIR` to empty folders. The app then starts at first run.
@@ -100,4 +100,4 @@ The serif is not final. To try another one, put its folder next to `src/fonts/so
 
 ## Licences
 
-The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), and links use `tauri-plugin-deep-link` (Apache-2.0 or MIT). Both are called from Rust only. Settings → About → Third-party Licences lists every crate and npm package the app ships, with its licence. `scripts/third-party.mjs` makes the list during `vp build` and `vp dev`, from `src-tauri/Cargo.lock` and `node_modules`, so it follows every dependency change; nobody edits it by hand. Run `node scripts/third-party.mjs` to print it. The build fails when the list can not be made. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them. It also allows `tiny-keccak` (CC0-1.0, public domain), which the deep-link plugin uses at build time on Linux.
+The app ships one npm package, `@tauri-apps/api` (Apache-2.0 or MIT). The folder picker is `tauri-plugin-dialog` (Apache-2.0 or MIT), links use `tauri-plugin-deep-link`, and `tauri-plugin-window-state` remembers the library window's size and place (all Apache-2.0 or MIT). All three are called from Rust only. Settings → About → Third-party Licences lists every crate and npm package the app ships, with its licence. `scripts/third-party.mjs` makes the list during `vp build` and `vp dev`, from `src-tauri/Cargo.lock` and `node_modules`, so it follows every dependency change; nobody edits it by hand. Run `node scripts/third-party.mjs` to print it. The build fails when the list can not be made. CI checks the npm packages with `scripts/licences.mjs` and the crates with `cargo deny` and `src-tauri/deny.toml`. That file allows five MPL-2.0 crates by name, because Tauri 2 itself depends on them. It also allows `tiny-keccak` (CC0-1.0, public domain), which the deep-link plugin uses at build time on Linux.

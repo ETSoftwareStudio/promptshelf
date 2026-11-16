@@ -188,6 +188,7 @@ const NO_RESULT = new Set([
   "save_file",
   "open_url",
   "link_handled",
+  "sidebar_shown",
 ]);
 
 let settings = { hotkey: "CommandOrControl+Shift+Space", workDir: "~/code/payments" };

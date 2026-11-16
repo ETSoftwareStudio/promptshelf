@@ -1,7 +1,7 @@
 <!-- The library window: sidebar | list | detail. The Inbox, proposals and
      files to fix have their own lists. -->
 <script lang="ts">
-  import { rise } from "../lib/motion";
+  import { BASE, dur, rise } from "../lib/motion";
   import { onMount } from "svelte";
   import AddLibrarySheet from "../components/AddLibrarySheet.svelte";
   import ConflictSheet from "../components/ConflictSheet.svelte";
@@ -16,9 +16,11 @@
   import PromptList from "../components/PromptList.svelte";
   import SendSheet from "../components/SendSheet.svelte";
   import Sidebar from "../components/Sidebar.svelte";
+  import Splitter from "../components/Splitter.svelte";
   import SyncErrorSheet from "../components/SyncErrorSheet.svelte";
   import UpdateDetail from "../components/UpdateDetail.svelte";
   import { api, copyInBrowser, errorText, onEvent } from "../lib/api";
+  import { INITIAL, LIST, SIDE, listWidth, loadColumns, saveColumns, sideWidth } from "../lib/columns";
   import { type Draft, newDraft, rowTitle, typed } from "../lib/draft";
   import { Filler } from "../lib/filler.svelte";
   import { libraryKey } from "../lib/keys";
@@ -79,6 +81,12 @@
   let searchEl = $state<HTMLInputElement>();
   let detailView = $state<ReturnType<typeof Detail>>();
   let promptActions = $state<ReturnType<typeof PromptActions>>();
+  let cols = $state(loadColumns());
+  let winWidth = $state(window.innerWidth);
+  /** True for a moment while the sidebar slides in or out. */
+  let sliding = $state(false);
+  const sideTrack = $derived(cols.sideHidden ? 0 : cols.side);
+  const listTrack = $derived(listWidth(cols.list, sideTrack, winWidth));
   const filler = new Filler();
   const toast = new Toast();
 
@@ -97,6 +105,30 @@
     nav === "problems" ? (overview?.diagnostics.find((d) => d.path === selected) ?? null) : null,
   );
   const syncLib = $derived(overview?.libraries.find((l) => l.name === syncSheet) ?? null);
+
+  function saveCols() {
+    saveColumns($state.snapshot(cols));
+  }
+
+  function setSide(want: number) {
+    const next = sideWidth(want);
+    cols.sideHidden = next.hidden;
+    if (!next.hidden) cols.side = next.side;
+  }
+
+  let slideTimer: ReturnType<typeof setTimeout> | undefined;
+  function toggleSidebar(show = cols.sideHidden) {
+    sliding = true;
+    clearTimeout(slideTimer);
+    slideTimer = setTimeout(() => (sliding = false), dur(BASE) + 40);
+    cols.sideHidden = !show;
+    saveCols();
+  }
+
+  // The View menu says Show Sidebar or Hide Sidebar.
+  $effect(() => {
+    void api.sidebarShown(!cols.sideHidden).catch(() => {});
+  });
 
   async function loadOverview() {
     try {
@@ -537,13 +569,14 @@
           if (!sheet && !syncSheet && !leaving) startDraft();
         } else if (id === "sync") void sync();
         else if (id === "find") searchEl?.focus();
+        else if (id === "toggle-sidebar") toggleSidebar();
       }),
     ];
     return () => stops.forEach((s) => s());
   });
 </script>
 
-<svelte:window {onkeydown} />
+<svelte:window {onkeydown} bind:innerWidth={winWidth} />
 
 {#if !overview}
   <div class="loading" data-tauri-drag-region>
@@ -552,7 +585,13 @@
 {:else if !overview.hasConfig}
   <FirstRun ondone={(path) => void started(path)} />
 {:else}
-  <main class="lib">
+  <main
+    class="lib"
+    class:sliding
+    class:bare={cols.sideHidden}
+    style:grid-template-columns="{sideTrack}px {listTrack}px minmax(0, 1fr)"
+  >
+    <div class="sidewrap" style:--side-w="{cols.side}px" inert={cols.sideHidden}>
     <Sidebar
       {overview}
       {nav}
@@ -564,6 +603,33 @@
       onsync={() => void sync()}
       onaddlib={() => (sheet = "addlib")}
       onsyncproblem={(lib) => (syncSheet = lib)}
+    />
+    </div>
+    <Splitter
+      left="{sideTrack}px"
+      width={sideTrack}
+      min={0}
+      max={SIDE.max}
+      label="Sidebar width"
+      ondrag={setSide}
+      onreset={() => {
+        cols.side = INITIAL.side;
+        toggleSidebar(true);
+      }}
+      onend={saveCols}
+    />
+    <Splitter
+      left="{sideTrack + listTrack}px"
+      width={listTrack}
+      min={LIST.min}
+      max={listWidth(LIST.max, sideTrack, winWidth)}
+      label="List width"
+      ondrag={(want) => (cols.list = listWidth(want, sideTrack, winWidth))}
+      onreset={() => {
+        cols.list = INITIAL.list;
+        saveCols();
+      }}
+      onend={saveCols}
     />
     {#if special}
       <ItemList
@@ -712,9 +778,33 @@
 
 <style>
   .lib {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(176px, 200px) minmax(220px, 280px) minmax(0, 1fr);
     height: 100%;
+  }
+  .lib.sliding {
+    transition: grid-template-columns 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /* The sidebar keeps its width and slides out of view, so its rows do not
+     squeeze while it hides. */
+  .sidewrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .sidewrap > :global(.side) {
+    flex: 1;
+    width: calc(var(--side-w) - 8px);
+    flex-shrink: 0;
+  }
+  /* With no sidebar, the list title moves clear of the window buttons. */
+  :global(html.mac) .lib :global(.lh) {
+    transition: padding-left 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  :global(html.mac) .lib.bare :global(.lh) {
+    padding-left: 92px;
   }
   .loading {
     height: 100%;

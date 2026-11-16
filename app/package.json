@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
+    "dev:app": "tauri dev --config src-tauri/tauri.dev.conf.json",
     "build": "vp build",
     "preview": "vp preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
