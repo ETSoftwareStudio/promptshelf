@@ -142,7 +142,7 @@ Use the folder from step 1. The default is `~/Prompts/personal`.
 
 Then run `shelf check`. It must print `OK`.
 
-**If `shelf init` exits with code 5:** the installed `shelf` is 0.2.1 or older, which does not let agents create a library. Open the app and ask the person to click Create Personal Library:
+**If `shelf init` exits with code 5:** the installed `shelf` is too old to let agents create a library. Upgrade it with the tool that installed it (for example `brew upgrade promptshelf`), then run `shelf init` again. If it still exits with code 5, open the app and ask the person to click Create Personal Library:
 - macOS: `open -a PromptShelf`
 - Linux: `~/Applications/PromptShelf-<tag>-linux-x86_64.AppImage &`
 - Windows: `Start-Process (Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Depth 2 -Filter PromptShelf.exe | Select-Object -First 1).FullName`
