@@ -9,15 +9,14 @@ use crate::output;
 use crate::skill::SKILL_MD;
 use crate::{InitArgs, LibsAddArgs, SkillCommand, WritesArg, exit};
 
+/// Agents may run this: it creates a new library or keeps the one there.
+/// It never changes prompts the person already has.
 pub(super) fn init(ctx: &Ctx, a: InitArgs) -> Result<u8> {
-    let existing = match Config::load() {
-        Ok(c) => Some(c),
-        Err(Error::NoConfig) => None,
+    let mut config = match Config::load() {
+        Ok(c) => c,
+        Err(Error::NoConfig) => Config::default(),
         Err(e) => return Err(e),
     };
-    ctx.caller
-        .may_write(existing.as_ref(), "Creating a library")?;
-    let mut config = existing.unwrap_or_default();
     let init = setup::init_personal(&mut config, &a.path, &super::sync::driver_program())?;
     if init.created {
         config.save()?;
