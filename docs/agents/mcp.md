@@ -21,7 +21,7 @@ shelf --version
 shelf check
 ```
 - If `shelf` is not found, install it first: follow [install.md](install.md).
-- If `shelf check` says there is no config, the person must create a library first (step 3 of [install.md](install.md)).
+- If `shelf check` says there is no config, the person must create a library first (step 4 of [install.md](install.md)).
 
 ## 2. Find the full path to `shelf`
 Apps started from the Dock or the Start menu often do not see the terminal's PATH. Use the full path in the config.

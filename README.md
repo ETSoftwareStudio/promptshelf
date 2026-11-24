@@ -32,11 +32,12 @@ The tray panel opens with a global shortcut and fills a prompt without leaving y
 </picture>
 
 ## Set up with an AI agent
-Copy one of these prompts into your coding agent (Claude Code, Codex, Cursor and others). The agent follows the linked steps. It asks you before the steps that need you, such as creating your library.
+Copy one of these prompts into your coding agent (Claude Code, Codex, Cursor and others). The agent follows the linked steps and does the work itself.
 
-Install PromptShelf:
+Install PromptShelf: the `shelf` command, the desktop app and the agent skill. The agent asks you one time before it starts. Then you click one button in the app to create your library.
 ```text
-Install PromptShelf for me. Follow the steps in
+Install PromptShelf for me: the shelf command, the desktop app and the
+agent skill. Follow the steps in
 https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/install.md
 ```
 
