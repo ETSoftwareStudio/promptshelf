@@ -1,13 +1,13 @@
 # Install PromptShelf (instructions for an AI agent)
 
-You are an AI coding agent. A person asked you to install PromptShelf on their computer. You install three things: the `shelf` command, the desktop app and the agent skill. Do every step yourself. The person does one thing only: they click one button in the app to create their library.
+You are an AI coding agent. A person asked you to install PromptShelf on their computer. You install three things: the `shelf` command, the desktop app and the agent skill. Do every step yourself. The person only answers one question at the start.
 
 PromptShelf is a local prompt library. Prompts are Markdown files in a folder the person owns. The `shelf` command finds and fills them. It has no server, no account and no telemetry.
 
 ## Rules
 - Ask the person one time, at the start (step 1). After they agree, run the steps without asking again.
 - Do not use `sudo` or an administrator prompt.
-- Some `shelf` commands refuse to run for an agent (exit code 5). This is on purpose: they create or change the person's library. Do not get around the refusal. Do not set `PROMPTSHELF_AGENT`, do not pass `--user-action`, and do not write `allow_writes` into the config.
+- Some `shelf` commands refuse to run for an agent (exit code 5). This is on purpose: they change the person's prompts or push to a remote. Do not get around the refusal. Do not set `PROMPTSHELF_AGENT`, do not pass `--user-action`, and do not write `allow_writes` into the config.
 - Verify the SHA-256 checksum of every file that you download.
 - If a step fails, stop and tell the person the exact error. Do not guess a fix that changes their system.
 
@@ -20,11 +20,11 @@ Run these checks. Do not install anything yet.
 - **The library** — `shelf check`. It prints `OK` when a library exists.
 - **Tools** — `brew --version` and `npx --version`.
 
-Then tell the person what you will install and how, in one short message. For example:
+Then tell the person what you will install and how, in one short message. If there is no library, ask where to put it. For example:
 
-> I will install the `shelf` command with Homebrew, the PromptShelf app with Homebrew, and the PromptShelf skill for your coding agents. Then I will open the app. You click one button in it to create your prompt library. OK?
+> I will install the `shelf` command and the PromptShelf app with Homebrew, and the PromptShelf skill for your coding agents. I will create your prompt library in `~/Prompts/personal`. OK, or do you want another folder or an existing git repo?
 
-Skip the parts that are already installed. If the person does not want the app, skip step 3 and use the fallback in step 4.
+Skip the parts that are already installed. If the person does not want the app, skip step 3.
 
 ## 2. Install the command
 Skip this step if `shelf --version` printed a version.
@@ -124,27 +124,38 @@ Skip this step if the app is installed.
   ```
   The installer is not signed yet. If Windows shows "Windows protected your PC", tell the person to click More info, then Run anyway.
 
-## 4. Create the library (the person clicks one button)
+## 4. Create the library
 Skip this step if `shelf check` printed `OK`.
 
-1. Open the app:
-   - macOS: `open -a PromptShelf`
-   - Linux: `~/Applications/PromptShelf-<tag>-linux-x86_64.AppImage &`
-   - Windows: `Start-Process (Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Depth 2 -Filter PromptShelf.exe | Select-Object -First 1).FullName`
-2. Tell the person: "PromptShelf is open. Click Create Personal Library to make your library in `~/Prompts/personal`. You can choose another folder, or clone a git repo, first."
-3. Wait until the library exists. Check every 5 seconds, for 5 minutes at most:
-   ```sh
-   for i in $(seq 60); do shelf check >/dev/null 2>&1 && break; sleep 5; done; shelf check
-   ```
-   In PowerShell:
-   ```powershell
-   foreach ($i in 1..60) { shelf check *> $null; if ($LASTEXITCODE -eq 0) { break }; Start-Sleep 5 }; shelf check
-   ```
-   It must print `OK`. If it does not, ask the person whether they clicked Create Personal Library, and run the check again.
+Use the folder from step 1. The default is `~/Prompts/personal`.
 
-**Fallback without the app:** ask the person to run `shelf init` in their own terminal. It creates `~/Prompts/personal` with a first prompt called "Welcome to PromptShelf". Then run `shelf check`.
+- **A new library:**
+  ```sh
+  shelf init --path <folder>
+  ```
+  It creates the folder as a git repo, with a first prompt called "Welcome to PromptShelf".
+- **An existing git repo:** clone it, then make it the library. `shelf init` keeps the prompts that are there.
+  ```sh
+  git clone <url> <folder>
+  shelf init --path <folder>
+  ```
 
-If the Linux AppImage does not start, it often needs FUSE 2. Run it with `--appimage-extract-and-run`, or use the fallback.
+Then run `shelf check`. It must print `OK`.
+
+**If `shelf init` exits with code 5:** the installed `shelf` is 0.2.1 or older, which does not let agents create a library. Open the app and ask the person to click Create Personal Library:
+- macOS: `open -a PromptShelf`
+- Linux: `~/Applications/PromptShelf-<tag>-linux-x86_64.AppImage &`
+- Windows: `Start-Process (Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Depth 2 -Filter PromptShelf.exe | Select-Object -First 1).FullName`
+
+Then check every 5 seconds, for 5 minutes at most, until the library exists:
+```sh
+for i in $(seq 60); do shelf check >/dev/null 2>&1 && break; sleep 5; done; shelf check
+```
+In PowerShell:
+```powershell
+foreach ($i in 1..60) { shelf check *> $null; if ($LASTEXITCODE -eq 0) { break }; Start-Sleep 5 }; shelf check
+```
+Without the app, ask the person to run `shelf init` in their own terminal.
 
 ## 5. Teach your agents the commands
 If `npx --version` works, run:
@@ -166,6 +177,8 @@ Run:
 shelf list --json
 ```
 It must show at least the `personal/welcome` prompt, unless the person used an existing library.
+
+If you installed the app, open it (the commands are in step 4). If the Linux AppImage does not start, it often needs FUSE 2: run it with `--appimage-extract-and-run`.
 
 Then tell the person:
 - what you installed and how,

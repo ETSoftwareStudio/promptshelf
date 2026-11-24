@@ -5,7 +5,7 @@
 Key facts for agents:
 
 - Always pass `--json` to `shelf`. Prompt IDs look like `personal/strict-pr-review`; a bare ID works when it is unique.
-- Agents can read, fill and save drafts to the Inbox. Other writes (creating a library, pinning, editing, syncing) need a person, and `shelf` exits with code 5 when an agent tries them. Ask the person to run those commands. Do not work around the refusal.
+- Agents can read, fill, save drafts to the Inbox and create a library with `shelf init`. Other writes (pinning, editing, pushing) need a person, and `shelf` exits with code 5 when an agent tries them. Ask the person to run those commands. Do not work around the refusal.
 - Never edit library files directly. Save new prompts with `shelf save`, which puts them in the person's Inbox.
 - Apps with no shell connect through `shelf mcp`, an MCP server on stdio.
 
@@ -20,7 +20,7 @@ Main commands:
 
 ## Set up
 
-- [Install PromptShelf](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/install.md): step-by-step instructions for an agent to install `shelf`, the desktop app and the agent skill. The person clicks one button in the app to create the library.
+- [Install PromptShelf](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/install.md): step-by-step instructions for an agent to install `shelf`, the desktop app and the agent skill, and create the library.
 - [Connect over MCP](https://raw.githubusercontent.com/ETSoftwareStudio/promptshelf/main/docs/agents/mcp.md): step-by-step instructions for an agent to add `shelf mcp` to Claude Desktop, Claude Code, Cursor, VS Code, Codex or another MCP app.
 
 ## Docs

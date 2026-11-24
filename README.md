@@ -34,7 +34,7 @@ The tray panel opens with a global shortcut and fills a prompt without leaving y
 ## Set up with an AI agent
 Copy one of these prompts into your coding agent (Claude Code, Codex, Cursor and others). The agent follows the linked steps and does the work itself.
 
-Install PromptShelf: the `shelf` command, the desktop app and the agent skill. The agent asks you one time before it starts. Then you click one button in the app to create your library.
+Install PromptShelf: the `shelf` command, the desktop app and the agent skill. The agent asks you one question before it starts: where to put your library.
 ```text
 Install PromptShelf for me: the shelf command, the desktop app and the
 agent skill. Follow the steps in
@@ -86,7 +86,7 @@ npx skills add ETSoftwareStudio/promptshelf -g
 
 With no Node.js, run `shelf skill install`. It writes the skill for Claude Code only.
 
-Every command takes `--json`. Agents with no terminal can read, fill and save drafts; other writes need a person.
+Every command takes `--json`. Agents with no terminal can read, fill, save drafts and create a library; other writes need a person.
 
 ### Apps with no shell (MCP)
 `shelf mcp` serves the Model Context Protocol on stdio. Templates show up as prompts, and four tools search, show, fill and save drafts. For Claude Desktop, add this to `claude_desktop_config.json`:
