@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.3.0...v0.4.0) (2026-11-24)
+
+
+### Features
+
+* **cli:** let agents create the library on install ([#34](https://github.com/ETSoftwareStudio/promptshelf/issues/34)) ([27a8e4d](https://github.com/ETSoftwareStudio/promptshelf/commit/27a8e4dfcccb15f6f99d1e098f4ea130f7e115bf))
+
 ## [0.3.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.2.1...v0.3.0) (2026-11-24)
 
 
