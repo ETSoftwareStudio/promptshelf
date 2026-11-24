@@ -299,23 +299,43 @@ fn agent_writes_need_permission() {
     );
 }
 
-#[test]
-fn init_creates_config_and_library() {
-    let dir = tempfile::tempdir().unwrap();
-    let lib = dir.path().join("Prompts/personal");
+fn init(cfg: &Path, lib: &Path, agent: bool) -> Value {
     let out = Command::cargo_bin("shelf")
         .unwrap()
-        .env("PROMPTSHELF_CONFIG_DIR", dir.path().join("cfg"))
-        .env("PROMPTSHELF_AGENT", "0")
+        .env("PROMPTSHELF_CONFIG_DIR", cfg)
+        .env("PROMPTSHELF_AGENT", if agent { "1" } else { "0" })
         .args(["init", "--path", lib.to_str().unwrap(), "--json"])
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(0));
-    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    serde_json::from_slice(&out.stdout).unwrap()
+}
+
+#[test]
+fn init_creates_config_and_library() {
+    let dir = tempfile::tempdir().unwrap();
+    let lib = dir.path().join("Prompts/personal");
+    let v = init(&dir.path().join("cfg"), &lib, false);
     assert_eq!(v["created"], true);
     assert!(lib.join("templates").is_dir());
     assert!(lib.join("inbox").is_dir());
     assert!(dir.path().join("cfg/config.toml").exists());
+}
+
+#[test]
+fn agents_can_init() {
+    let dir = tempfile::tempdir().unwrap();
+    let cfg = dir.path().join("cfg");
+    let lib = dir.path().join("Prompts/personal");
+    let v = init(&cfg, &lib, true);
+    assert_eq!(v["created"], true);
+    assert!(lib.join("templates/welcome.md").is_file());
+    // A second run keeps the library and its prompts.
+    let other = dir.path().join("Elsewhere");
+    let v = init(&cfg, &other, true);
+    assert_eq!(v["created"], false);
+    assert!(!other.exists());
+    assert!(lib.join("templates/welcome.md").is_file());
 }
 
 #[test]
