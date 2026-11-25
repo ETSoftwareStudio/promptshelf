@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.4.0...v0.5.0) (2026-11-25)
+
+
+### Features
+
+* **app:** edit prompts as rich text with blank chips ([#37](https://github.com/ETSoftwareStudio/promptshelf/issues/37)) ([afa7095](https://github.com/ETSoftwareStudio/promptshelf/commit/afa70953435872c70d196957c12c293ff2c776eb))
+
 ## [0.4.0](https://github.com/ETSoftwareStudio/promptshelf/compare/v0.3.0...v0.4.0) (2026-11-24)
 
 
