@@ -28,6 +28,7 @@
   import { inboxGroups, problemGroups, proposalGroups, updateKey } from "../lib/lists";
   import { navQuery, navTitle, syncSummary } from "../lib/nav";
   import { onFocus } from "../lib/platform";
+  import { readFields, varsToWrite, writeFields } from "../lib/promptdoc";
   import { Toast } from "../lib/toast.svelte";
   import type {
     Detail as DetailT,
@@ -270,7 +271,12 @@
     draftSaving = true;
     draftError = null;
     try {
-      const id = await api.createPrompt(d.title, d.kind, d.library, d.body);
+      let id = await api.createPrompt(d.title, d.kind, d.library, d.body);
+      // The blank settings and tags go in the frontmatter of the new file.
+      if (d.tags.length || Object.keys(varsToWrite(d.body, d.vars)).length) {
+        const file = (await api.get(id)).file;
+        id = await api.saveFile(id, writeFields(file, { ...readFields(file), tags: d.tags, vars: d.vars }));
+      }
       const team = overview?.libraries.find((l) => l.name === d.library)?.writes === "pull-request";
       dropDraft();
       toast.show(team ? "Saved as your proposal. Send it when it is ready." : "Saved.");

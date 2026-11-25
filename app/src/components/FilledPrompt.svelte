@@ -3,13 +3,14 @@
      blanks are the fill form. -->
 <script lang="ts">
   import { annotate, sourceLabel, withoutTitle } from "../lib/footnotes";
-  import type { Filler } from "../lib/filler.svelte";
+  import type { FillSource } from "../lib/filler.svelte";
+  import { MENU_AT } from "../lib/blanks";
 
   let {
     filler,
     title = "",
     compact = false,
-  }: { filler: Filler; title?: string; compact?: boolean } = $props();
+  }: { filler: FillSource; title?: string; compact?: boolean } = $props();
 
   /** A word joiner: a footnote number never starts a line on its own. */
   const JOIN = "\u2060";
@@ -42,7 +43,19 @@
         <span class="nn {note.tone}">{note.n}</span>
         <div class="note">
           {#if filler.editable(note.name)}
-            {#if spec.choices?.length}
+            {#if spec.choices?.length && spec.choices.length >= MENU_AT}
+              <label class="field">
+                <span class="fname">{note.name}</span>
+                <select
+                  class="input pick"
+                  value={filler.current(note.name)}
+                  onchange={(e) => filler.set(note.name, e.currentTarget.value)}
+                >
+                  <option value="">Choose…</option>
+                  {#each spec.choices as choice (choice)}<option value={choice}>{choice}</option>{/each}
+                </select>
+              </label>
+            {:else if spec.choices?.length}
               <span class="choice" role="group" aria-label={note.name}>
                 {#each spec.choices as choice (choice)}
                   <button
@@ -77,7 +90,10 @@
                 {/if}
               </label>
             {/if}
-            {#if note.open && spec.from === "conversation"}
+            {@const later = filler.later?.(note.name)}
+            {#if note.open && later}
+              <span class="cap">{later}</span>
+            {:else if note.open && spec.from === "conversation"}
               <span class="cap">Left open, the model fills it from the chat.</span>
             {:else if note.open && reason}
               <span class="cap warn">{reason}</span>
@@ -120,6 +136,8 @@
   }
   .field {
     display: flex;
+    /* The sheets' .field is a column; a fill field is one row. */
+    flex-direction: row;
     align-items: center;
     gap: 7px;
     min-width: 0;
@@ -134,6 +152,10 @@
   .field .input {
     padding: 3px 7px;
     font-size: 12px;
+  }
+  .field .pick {
+    width: auto;
+    max-width: 100%;
   }
   .field .area {
     resize: vertical;

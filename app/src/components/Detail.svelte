@@ -19,7 +19,9 @@
   import { libraryLabel, proposalLabel, usedTimes } from "../lib/format";
   import { modKey } from "../lib/hotkey";
   import type { Detail } from "../lib/types";
-  import Editor from "./Editor.svelte";
+  import { readFields, writeFields } from "../lib/promptdoc";
+  import type { VarSpec } from "../lib/types";
+  import PromptEditor from "./PromptEditor.svelte";
   import FilledPrompt from "./FilledPrompt.svelte";
   import Icon from "./Icon.svelte";
   import Menu, { type MenuItem } from "./Menu.svelte";
@@ -45,19 +47,39 @@
     onaction?: (action: Action) => void;
   } = $props();
 
-  let text = $state("");
+  let title = $state("");
+  let tags = $state<string[]>([]);
+  let vars = $state<Record<string, VarSpec>>({});
+  let body = $state("");
+  /** The file as it was, or as the File view left it. Save writes the
+   *  fields into it. */
+  let base = $state("");
+  let start = $state<"text" | "file">("text");
   let error = $state<string | null>(null);
   let saving = $state(false);
+  let pe = $state<PromptEditor>();
 
   export function edit() {
-    text = detail.file;
+    base = detail.file;
     error = null;
+    try {
+      ({ title, tags, vars, body } = readFields(detail.file));
+      if (!title) title = detail.title;
+      start = "text";
+    } catch {
+      ({ title, tags, vars, body } = { title: detail.title, tags: [], vars: {}, body: "" });
+      start = "file";
+    }
     editing = true;
   }
 
   async function save() {
+    if (saving) return;
+    const bad = pe?.finish();
+    if (bad) return void (error = bad);
     saving = true;
     try {
+      const text = writeFields(base, { title, tags, vars, body });
       const id = await api.saveFile(detail.fullId, text);
       editing = false;
       onsaved(id);
@@ -65,6 +87,16 @@
       error = errorText(e);
     } finally {
       saving = false;
+    }
+  }
+
+  function oneditkey(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      e.preventDefault();
+      void save();
+    } else if (e.key === "Escape" && !e.defaultPrevented) {
+      e.preventDefault();
+      editing = false;
     }
   }
 
@@ -120,12 +152,17 @@
   </header>
 
   <div class="body" class:editing>
-    <h2>{detail.title}</h2>
-    <div class="meta">
-      <code>{detail.fullId}</code> · {prop ? "your version" : kindLabel} · {usedTimes(detail.uses)}
-      {#if detail.tags.length}· {detail.tags.join(", ")}{/if}
-      {#if detail.forkedFrom}· copy of <code>{detail.forkedFrom}</code>{/if}
-    </div>
+    {#snippet metaLine()}
+      <div class="meta">
+        <code>{detail.fullId}</code> · {prop ? "your version" : kindLabel} · {usedTimes(detail.uses)}
+        {#if !editing && detail.tags.length}· {detail.tags.join(", ")}{/if}
+        {#if detail.forkedFrom}· copy of <code>{detail.forkedFrom}</code>{/if}
+      </div>
+    {/snippet}
+    {#if !editing}
+      <h2>{detail.title}</h2>
+      {@render metaLine()}
+    {/if}
     {#if prop && label}
       <div class="banner" class:info={label.tone !== "warn"}>
         <Icon name="branch" small />
@@ -173,7 +210,28 @@
       </div>
     {/if}
     {#if editing}
-      <Editor bind:text path={detail.path} {error} {saving} onsave={save} oncancel={() => (editing = false)} />
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="edit" onkeydown={oneditkey}>
+        {#if error}<div class="banner" role="alert"><Icon name="warn" small /><span class="grow">{error}</span></div>{/if}
+        <PromptEditor
+          bind:this={pe}
+          bind:title
+          bind:tags
+          bind:vars
+          bind:body
+          bind:base
+          {start}
+          library={detail.library}
+          meta={metaLine}
+        />
+        <div class="foot">
+          <span class="path mono" title={detail.path}>{detail.path}</span>
+          <button class="btn" onclick={() => (editing = false)}>Cancel</button>
+          <button class="btn primary" onclick={save} disabled={saving}
+            >{saving ? "Saving…" : "Save"} <span class="k">{modKey("S")}</span></button
+          >
+        </div>
+      </div>
     {:else}
       {#if waiting.length}
         <div class="banner info">
@@ -241,6 +299,37 @@
   .meta code {
     font-size: 11px;
     color: var(--ink);
+  }
+  .edit {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .edit > .banner {
+    margin-bottom: 10px;
+  }
+  .edit .meta {
+    margin: 3px 0 0 9px;
+  }
+  .foot {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 0 12px;
+  }
+  .path {
+    margin-right: auto;
+    color: var(--ink3);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .k {
+    opacity: 0.75;
+    font-weight: 400;
   }
   .busy {
     margin: 10px 0 0;

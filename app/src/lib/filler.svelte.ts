@@ -6,7 +6,20 @@ import { api, errorText } from "./api";
 import { RESOLVED } from "./footnotes";
 import type { FillView, Value } from "./types";
 
-export class Filler {
+/** What the fill view reads. The library's Filler runs the resolvers; the
+ *  editor's preview builds the view from text that is not saved yet. */
+export interface FillSource {
+  readonly view: FillView | null;
+  current(name: string): string;
+  editable(name: string): boolean;
+  /** Why a resolver could not fill a blank, if it tried. */
+  reason(name: string): string | undefined;
+  /** Where an open blank gets its value later, in the preview. */
+  later?(name: string): string | undefined;
+  set(name: string, value: string): void;
+}
+
+export class Filler implements FillSource {
   id = $state<string | null>(null);
   /** The resolver run. Null until it finishes. */
   base = $state<FillView | null>(null);
