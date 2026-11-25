@@ -1,0 +1,182 @@
+/* The rich prompt editor: the text in CodeMirror, blank chips, the menu after
+   `{{` and the segmented controls. */
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--seg);
+  box-shadow: inset 0 0 0 0.5px var(--edge);
+}
+.seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  font: 12px var(--font-ui);
+  color: var(--ink2);
+  cursor: pointer;
+}
+.seg button.on {
+  background: var(--btn);
+  color: var(--ink);
+  font-weight: 500;
+  box-shadow:
+    0 0 0 0.5px var(--edge),
+    0 1px 2px oklch(10% 0 0 / 0.12);
+}
+.seg button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* The text */
+.paper .cm-editor {
+  flex: 1;
+  min-height: 0;
+  color: var(--ink);
+}
+.paper .cm-editor.cm-focused {
+  outline: none;
+}
+.paper .cm-scroller {
+  font: 15.5px/1.75 var(--font-prompt);
+  overflow: auto;
+}
+.paper .cm-content {
+  padding: 14px 16px;
+  caret-color: var(--accent);
+  user-select: text;
+  -webkit-user-select: text;
+}
+.paper .cm-line {
+  padding: 0;
+}
+.paper .cm-placeholder {
+  color: var(--ink3);
+}
+.paper .cm-cursor {
+  border-left-color: var(--accent);
+}
+.paper .cm-selectionBackground,
+.paper .cm-focused .cm-selectionBackground {
+  background: var(--focus);
+}
+
+/* Blanks in the text */
+.blank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 1px;
+  padding: 0 7px 0 6px;
+  border-radius: 6px;
+  font: 500 13px/1.55 var(--font-ui);
+  vertical-align: 1px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: inset 0 0 0 0.5px var(--edge);
+}
+.blank svg {
+  flex: none;
+  opacity: 0.85;
+}
+.blank .dv {
+  margin-left: 1px;
+  padding-left: 5px;
+  font-weight: 400;
+  opacity: 0.8;
+  border-left: 1px solid color-mix(in oklch, currentColor 30%, transparent);
+}
+.blank.y {
+  background: var(--y-bg);
+  color: var(--y-ink);
+}
+.blank.c {
+  background: var(--c-bg);
+  color: var(--c-ink);
+}
+.blank.g {
+  background: var(--g-bg);
+  color: var(--g-ink);
+}
+.blank.inc {
+  background: var(--seg);
+  color: var(--ink2);
+  font-weight: 400;
+  cursor: default;
+}
+.blank.inc b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.blank.on {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.blank:not(.inc):hover {
+  filter: brightness(0.97);
+}
+
+/* The menu after `{{` */
+.paper .cm-tooltip.cm-tooltip-autocomplete {
+  border: 0;
+  border-radius: 10px;
+  padding: 5px;
+  background: var(--sheet);
+  box-shadow:
+    0 0 0 0.5px var(--edge),
+    0 12px 32px -8px var(--shadow);
+  font: 12.5px var(--font-ui);
+}
+.paper .cm-tooltip.cm-tooltip-autocomplete > ul {
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 260px;
+  font-family: var(--font-ui);
+}
+.paper .cm-tooltip.cm-tooltip-autocomplete > ul > completion-section {
+  display: block;
+  padding: 6px 8px 3px;
+  border: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+.paper .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--ink);
+}
+.paper .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.paper .cm-completionLabel {
+  font: 12px var(--font-mono);
+}
+.paper .cm-completionMatchedText {
+  text-decoration: none;
+  font-weight: 600;
+}
+.paper .cm-tooltip .cm-completionDetail {
+  margin-left: auto;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink3);
+}
+.paper li[aria-selected] .cm-completionDetail {
+  color: inherit;
+}

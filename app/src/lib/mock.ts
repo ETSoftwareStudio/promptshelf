@@ -2,6 +2,7 @@
 // looked at without Tauri. Only dev builds load it. Every name is made up.
 
 import { isCommand } from "./filler.svelte";
+import { readFields } from "./promptdoc";
 import { PINS, PROMPTS, RESOLVED, type MockPrompt } from "./mock-data";
 import { callAbout } from "./mock-about";
 import { callMore } from "./mock-more";
@@ -71,6 +72,7 @@ function summary(p: MockPrompt): Summary {
 function file(p: MockPrompt): string {
   const lines = ["---", `id: ${p.id}`, `title: ${p.title}`, `kind: ${p.kind}`];
   if (p.description) lines.push(`description: ${p.description}`);
+  if (p.tags.length) lines.push(`tags: [${p.tags.join(", ")}]`);
   const vars = Object.entries(p.vars);
   if (vars.length) {
     lines.push("vars:");
@@ -257,9 +259,8 @@ export async function call(cmd: string, a: Record<string, unknown>): Promise<unk
       pins = pins.filter((x) => x !== id && x !== (p ? fullId(p) : ""));
       return pins;
     case "save_prompt_file": {
-      const text = a.text as string;
-      const body = text.replace(/^---\n[\s\S]*?\n---\n/, "");
-      p!.body = body;
+      const f = readFields(a.text as string);
+      Object.assign(p!, { body: f.body, vars: f.vars, tags: f.tags, title: f.title || p!.title });
       return fullId(p!);
     }
     case "create_prompt": {
