@@ -4,7 +4,7 @@
 <script lang="ts">
   import { annotate, sourceLabel, withoutTitle } from "../lib/footnotes";
   import type { FillSource } from "../lib/filler.svelte";
-  import { MENU_AT } from "../lib/promptdoc";
+  import { MENU_AT } from "../lib/blanks";
 
   let {
     filler,

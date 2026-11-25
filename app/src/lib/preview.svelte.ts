@@ -3,7 +3,7 @@
 // and say where their value will come from.
 
 import { isCommand, type FillSource } from "./filler.svelte";
-import { tokens } from "./promptdoc";
+import { tokens } from "./blanks";
 import type { Filled, FillView, Missing, Piece, VarSpec } from "./types";
 
 /** Words for an Automatic blank in the preview. */
