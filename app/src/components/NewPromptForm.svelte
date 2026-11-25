@@ -4,9 +4,9 @@
   import { DRAFT_KINDS, type Draft } from "../lib/draft";
   import { libraryLabel } from "../lib/format";
   import { modKey } from "../lib/hotkey";
-  import { typeTab } from "../lib/keys";
   import type { LibraryInfo } from "../lib/types";
   import Icon from "./Icon.svelte";
+  import PromptEditor from "./PromptEditor.svelte";
 
   let {
     draft = $bindable(),
@@ -27,16 +27,15 @@
     ondiscard: () => void;
   } = $props();
 
-  let titleEl = $state<HTMLInputElement>();
-  let bodyEl = $state<HTMLTextAreaElement>();
+  let pe = $state<PromptEditor>();
 
   /** Puts the cursor in the title, for ⌘N while the form is open. */
   export function focus() {
-    titleEl?.focus();
+    pe?.focusTitle();
   }
 
   $effect(() => {
-    titleEl?.focus();
+    pe?.focusTitle();
   });
 
   const team = $derived(libraries.find((l) => l.name === draft.library)?.writes === "pull-request");
@@ -50,7 +49,7 @@
   }
 
   function onformkey(e: KeyboardEvent) {
-    if (e.key === "Escape") {
+    if (e.key === "Escape" && !e.defaultPrevented) {
       // The confirm that may open listens for Esc on the window: this press
       // must not reach it and close it at once.
       e.preventDefault();
@@ -59,17 +58,6 @@
     }
   }
 
-  function ontitlekey(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
-      e.preventDefault();
-      bodyEl?.focus();
-    }
-  }
-
-  function onbodykey(e: KeyboardEvent) {
-    const next = typeTab(e);
-    if (next !== null) draft.body = next;
-  }
 </script>
 
 <svelte:window onkeydown={onwindowkey} />
@@ -88,41 +76,35 @@
     {#if error}
       <div class="banner" role="alert"><Icon name="warn" small /><span class="grow">{error}</span></div>
     {/if}
-    <input
-      bind:this={titleEl}
-      bind:value={draft.title}
-      class="input title"
-      placeholder="Untitled"
-      aria-label="Title"
-      spellcheck="false"
-      onkeydown={ontitlekey}
+    {#snippet meta()}
+      <div class="meta">
+        <label>
+          <span>Kind</span>
+          <select bind:value={draft.kind} class="input">
+            {#each DRAFT_KINDS as k (k.kind)}
+              <option value={k.kind}>{k.label}</option>
+            {/each}
+          </select>
+        </label>
+        <label>
+          <span>Library</span>
+          <select bind:value={draft.library} class="input">
+            {#each libraries as lib (lib.name)}
+              <option value={lib.name}>{libraryLabel(lib.name)}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+    {/snippet}
+    <PromptEditor
+      bind:this={pe}
+      bind:title={draft.title}
+      bind:tags={draft.tags}
+      bind:vars={draft.vars}
+      bind:body={draft.body}
+      library={draft.library}
+      {meta}
     />
-    <div class="meta">
-      <label>
-        <span>Kind</span>
-        <select bind:value={draft.kind} class="input">
-          {#each DRAFT_KINDS as k (k.kind)}
-            <option value={k.kind}>{k.label}</option>
-          {/each}
-        </select>
-      </label>
-      <label>
-        <span>Library</span>
-        <select bind:value={draft.library} class="input">
-          {#each libraries as lib (lib.name)}
-            <option value={lib.name}>{libraryLabel(lib.name)}</option>
-          {/each}
-        </select>
-      </label>
-    </div>
-    <textarea
-      bind:this={bodyEl}
-      bind:value={draft.body}
-      class="input text"
-      placeholder={"Write the prompt here. Use {{name}} for a blank."}
-      aria-label="Prompt text"
-      onkeydown={onbodykey}
-    ></textarea>
     <p class="note">
       {#if team}
         {libraryLabel(draft.library)} is a team library. Save makes a proposal on this computer.
@@ -172,18 +154,11 @@
   .banner {
     margin-bottom: 10px;
   }
-  .title {
-    font-size: 19px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    padding: 5px 9px;
-    border-radius: 8px;
-  }
   .meta {
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
-    margin: 10px 0 14px;
+    margin: 8px 0 0 9px;
     font-size: 12px;
     color: var(--ink2);
   }
@@ -196,17 +171,6 @@
     width: auto;
     padding-top: 3px;
     padding-bottom: 3px;
-  }
-  .text {
-    flex: 1;
-    min-height: 160px;
-    resize: none;
-    padding: 12px 14px;
-    border-radius: 9px;
-    font-family: var(--font-prompt);
-    font-size: 15.5px;
-    line-height: 1.7;
-    tab-size: 2;
   }
   .note {
     margin: 0;

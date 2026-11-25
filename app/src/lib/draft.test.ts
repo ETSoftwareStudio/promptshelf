@@ -14,7 +14,15 @@ test("the draft goes to the library in view, else Personal", () => {
 
 test("a new draft is an empty template", () => {
   const d = newDraft("all", libs, "personal");
-  expect(d).toEqual({ title: "", kind: "template", library: "personal", body: "", start: "" });
+  expect(d).toEqual({
+    title: "",
+    kind: "template",
+    library: "personal",
+    body: "",
+    tags: [],
+    vars: {},
+    start: "",
+  });
   expect(DRAFT_KINDS[0].kind).toBe("template");
   expect(DRAFT_KINDS.map((k) => k.label)).toEqual([
     "Template",
@@ -31,6 +39,7 @@ test("only typed text counts, not spaces, kind or library", () => {
   expect(typed({ ...d, kind: "snippet", library: "acme-eng" })).toBe(false);
   expect(typed({ ...d, title: "Review" })).toBe(true);
   expect(typed({ ...d, body: "Text" })).toBe(true);
+  expect(typed({ ...d, tags: ["review"] })).toBe(true);
 });
 
 test("a title from a link is not typed text", () => {

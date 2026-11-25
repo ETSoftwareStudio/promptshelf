@@ -1,13 +1,16 @@
 // A new prompt before its first save. It lives only in the window: the file
 // is written once, when you click Save.
 
-import type { Kind } from "./types";
+import type { Kind, VarSpec } from "./types";
 
 export interface Draft {
   title: string;
   kind: Kind;
   library: string;
   body: string;
+  tags: string[];
+  /** Blank settings, written to the frontmatter after the first save. */
+  vars: Record<string, VarSpec>;
   /** The title the draft started with, from a `promptshelf://new` link. */
   start: string;
 }
@@ -43,6 +46,8 @@ export function newDraft(
     kind: "template",
     library: draftLibrary(nav, libraries, personal),
     body: "",
+    tags: [],
+    vars: {},
     start: title,
   };
 }
@@ -50,7 +55,7 @@ export function newDraft(
 /** True when you typed something that Discard would lose. The kind and the
  *  library are not counted: they are quick to choose again. */
 export function typed(d: Draft): boolean {
-  return d.title.trim() !== d.start.trim() || d.body.trim() !== "";
+  return d.title.trim() !== d.start.trim() || d.body.trim() !== "" || d.tags.length > 0;
 }
 
 /** The text of the draft's row in the list. */
