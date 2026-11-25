@@ -57,6 +57,9 @@ export function renameBlank(body: string, from: string, to: string): string {
   return out + body.slice(at);
 }
 
+/** This many choices or more show as a menu in the fill view, not buttons. */
+export const MENU_AT = 5;
+
 export type BlankType = "text" | "choice" | "auto";
 
 /** Automatic when a source fills it, Choice when it has choices, else Text. */
@@ -207,10 +210,33 @@ export function writeFields(original: string, f: Fields): string {
     changed = true;
   }
 
-  const head = changed ? doc.toString({ lineWidth: 0 }) : (yaml ?? "");
+  const head = changed ? doc.toString({ lineWidth: 0, flowCollectionPadding: false }) : (yaml ?? "");
   if (yaml === null && head.trim() === "{}") return f.body;
   if (yaml === null) return `---\n${head}---\n\n${f.body}`;
   if (!changed && f.body === body) return original;
   const empty = head.trim() === "{}" || head.trim() === "";
   return `---\n${empty ? "" : head}---\n${gap}${f.body}`;
+}
+
+/** Takes every `{{name}}` out of the text, and the space before it when that
+ *  would leave two spaces or a space before punctuation. */
+export function removeBlank(body: string, name: string): string {
+  let out = "";
+  let at = 0;
+  for (const t of tokens(body)) {
+    if (t.kind !== "blank" || t.name !== name) continue;
+    let head = body.slice(at, t.from);
+    const next = body.charAt(t.to);
+    if (head.endsWith(" ") && (next === "" || /[\s.,;:!?)]/.test(next))) head = head.slice(0, -1);
+    out += head;
+    at = t.to;
+  }
+  return out + body.slice(at);
+}
+
+/** The first free name: `blank`, then `blank-2`, `blank-3` and so on. */
+export function freeName(taken: Iterable<string>, base = "blank"): string {
+  const names = new Set(taken);
+  if (!names.has(base)) return base;
+  for (let n = 2; ; n++) if (!names.has(`${base}-${n}`)) return `${base}-${n}`;
 }

@@ -2,7 +2,9 @@ import { expect, test } from "vite-plus/test";
 import {
   blankNames,
   blankType,
+  freeName,
   readFields,
+  removeBlank,
   renameBlank,
   split,
   tokens,
@@ -78,7 +80,7 @@ test("new blank settings keep comments and unknown fields", () => {
   });
   expect(out).toContain("# a comment the app must keep");
   expect(out).toContain("owner: someone");
-  expect(out).toContain("choices: [ Rust, Go ]");
+  expect(out).toContain("choices: [Rust, Go]");
   expect(readFields(out).vars.language).toEqual({ default: "Rust", choices: ["Rust", "Go"] });
   // Blanks in the text come first, in text order.
   expect(Object.keys(readFields(out).vars)).toEqual(["language", "diff"]);
@@ -105,4 +107,14 @@ test("a file without frontmatter gets one only when needed", () => {
 
 test("broken YAML throws", () => {
   expect(() => readFields("---\ntitle: [\n---\nx")).toThrow();
+});
+
+test("remove takes the blank and one space out", () => {
+  expect(removeBlank("Use {{a}} and {{a}}. Then {{b}}", "a")).toBe("Use and. Then {{b}}");
+  expect(removeBlank("{{a}} first", "a")).toBe(" first");
+});
+
+test("free names count up", () => {
+  expect(freeName([])).toBe("blank");
+  expect(freeName(["blank", "blank-2"])).toBe("blank-3");
 });
