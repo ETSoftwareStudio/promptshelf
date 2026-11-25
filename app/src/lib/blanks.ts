@@ -40,7 +40,13 @@ export function tokens(body: string): Token[] {
 
 /** The blank names in the text, in the order they first appear. */
 export function blankNames(body: string): string[] {
-  return [...new Set(tokens(body).filter((t) => t.kind === "blank").map((t) => t.name))];
+  return [
+    ...new Set(
+      tokens(body)
+        .filter((t) => t.kind === "blank")
+        .map((t) => t.name),
+    ),
+  ];
 }
 
 /** Renames every `{{old}}` in the text. Includes stay as they are. */

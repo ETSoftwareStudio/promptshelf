@@ -62,7 +62,9 @@ export function previewView(
     seen.add(t.name);
   }
   text(body.slice(at));
-  const plain = pieces.map((p) => (p.type === "text" ? p.text : p.type === "value" ? p.value : `{{${p.name}}}`)).join("");
+  const plain = pieces
+    .map((p) => (p.type === "text" ? p.text : p.type === "value" ? p.value : `{{${p.name}}}`))
+    .join("");
   return {
     fullId: "",
     pieces,

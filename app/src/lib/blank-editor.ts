@@ -44,16 +44,21 @@ const SVG = (d: string, w = 12) =>
 /** Small icons for chips and the blank card, 16 × 16 grid. */
 export const ICONS: Record<string, string> = {
   text: SVG('<path d="M3 13l1-3.5 7-7 2.5 2.5-7 7zM9.5 4l2.5 2.5"/>'),
-  choice: SVG('<circle cx="3.5" cy="4.5" r="1.2"/><circle cx="3.5" cy="11.5" r="1.2"/><path d="M7 4.5h6.5M7 11.5h6.5"/>'),
+  choice: SVG(
+    '<circle cx="3.5" cy="4.5" r="1.2"/><circle cx="3.5" cy="11.5" r="1.2"/><path d="M7 4.5h6.5M7 11.5h6.5"/>',
+  ),
   auto: SVG('<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>'),
   conversation: SVG('<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/>'),
   clipboard: SVG('<path d="M5.5 3H3.5v11h9V3h-2M5.5 2h5v2.5h-5z"/>'),
   selection: SVG('<path d="M6 2.5h4M6 13.5h4M8 2.5v11"/>'),
-  branch: SVG('<circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="5" r="1.5"/><path d="M4.5 5v6M11.5 6.5c0 3-7 2-7 4.5"/>'),
+  branch: SVG(
+    '<circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="5" r="1.5"/><path d="M4.5 5v6M11.5 6.5c0 3-7 2-7 4.5"/>',
+  ),
   last: SVG('<path d="M3 8a5 5 0 105-5H5M5 1l-2 2 2 2"/>'),
   command: SVG('<path d="M3 4.5l3.5 3.5L3 11.5M8 12h5"/>'),
   snippet: SVG('<path d="M4 2.5v6.5h8M9.5 6.5L12 9l-2.5 2.5"/>'),
-  caret: '<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M1.5 3.5h7L5 7.5z"/></svg>',
+  caret:
+    '<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M1.5 3.5h7L5 7.5z"/></svg>',
 };
 
 /** The icon of a blank: its source when it is Automatic, else its type. */
@@ -134,7 +139,12 @@ function chipsFor(state: EditorState): DecorationSet {
   const active = state.field(activeField);
   const ranges = tokens(state.doc.toString()).map((t) =>
     Decoration.replace({
-      widget: new Chip(t.kind, t.name, t.kind === "blank" ? vars[t.name] : undefined, t.name === active),
+      widget: new Chip(
+        t.kind,
+        t.name,
+        t.kind === "blank" ? vars[t.name] : undefined,
+        t.name === active,
+      ),
     }).range(t.from, t.to),
   );
   return Decoration.set(ranges);
@@ -146,7 +156,10 @@ const chips = StateField.define<DecorationSet>({
     const redraw = tr.docChanged || tr.effects.some((e) => e.is(setVars) || e.is(setActive));
     return redraw ? chipsFor(tr.state) : deco;
   },
-  provide: (f) => [EditorView.decorations.from(f), EditorView.atomicRanges.of((v) => v.state.field(f))],
+  provide: (f) => [
+    EditorView.decorations.from(f),
+    EditorView.atomicRanges.of((v) => v.state.field(f)),
+  ],
 });
 
 /** Words for a blank in the menu. */

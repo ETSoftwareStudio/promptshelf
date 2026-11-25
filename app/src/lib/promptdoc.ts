@@ -44,6 +44,11 @@ function gapped(body: string): { gap: string; body: string } {
   return body.startsWith("\n") ? { gap: "\n", body: body.slice(1) } : { gap: "", body };
 }
 
+/** A YAML scalar as text; a map or a list gives undefined. */
+function scalar(v: unknown): string | undefined {
+  return ["string", "number", "boolean"].includes(typeof v) ? String(v as string) : undefined;
+}
+
 function asStrings(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x) => x != null).map(String) : [];
 }
@@ -51,8 +56,13 @@ function asStrings(v: unknown): string[] {
 function asSpec(v: unknown): VarSpec {
   if (!v || typeof v !== "object") return {};
   const o = v as Record<string, unknown>;
-  const s = (k: string) => (o[k] == null ? undefined : String(o[k]));
-  const spec: VarSpec = { from: s("from"), hint: s("hint"), default: s("default"), pattern: s("pattern") };
+  const s = (k: string) => scalar(o[k]);
+  const spec: VarSpec = {
+    from: s("from"),
+    hint: s("hint"),
+    default: s("default"),
+    pattern: s("pattern"),
+  };
   if (Array.isArray(o.choices)) spec.choices = asStrings(o.choices);
   return cleanSpec(spec) ?? {};
 }
@@ -67,7 +77,7 @@ export function readFields(text: string): Fields {
     for (const [name, spec] of Object.entries(raw)) vars[name] = asSpec(spec);
   }
   return {
-    title: data.title == null ? "" : String(data.title),
+    title: scalar(data.title) ?? "",
     tags: asStrings(data.tags),
     vars,
     body,
@@ -135,7 +145,9 @@ export function writeFields(original: string, f: Fields): string {
     changed = true;
   }
 
-  const head = changed ? doc.toString({ lineWidth: 0, flowCollectionPadding: false }) : (yaml ?? "");
+  const head = changed
+    ? doc.toString({ lineWidth: 0, flowCollectionPadding: false })
+    : (yaml ?? "");
   if (yaml === null && head.trim() === "{}") return f.body;
   if (yaml === null) return `---\n${head}---\n\n${f.body}`;
   if (!changed && f.body === body) return original;
